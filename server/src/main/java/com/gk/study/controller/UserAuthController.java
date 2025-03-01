@@ -233,10 +233,11 @@ public class UserAuthController {
         // 3. 若认证成功, 生成JWT并返回
         SecurityContextHolder.getContext().setAuthentication(authentication);
         String jwt = jwtUtil.generateToken(request.getUsername());
-
+        User user = userService.getUserByUserName(request.getUsername());
         Map<String, Object> dataMap = new HashMap<>();
         dataMap.put("token", jwt);
         dataMap.put("username", request.getUsername());
+        dataMap.put("userId",user.getId());
         dataMap.put("message", "登录成功");
 
         return ResponseEntity.ok(
