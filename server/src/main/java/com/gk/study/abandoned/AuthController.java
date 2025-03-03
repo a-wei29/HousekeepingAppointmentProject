@@ -2,9 +2,9 @@ package com.gk.study.abandoned;
 
 import com.gk.study.common.APIResponse;
 import com.gk.study.common.ResponeCode;
-import com.gk.study.entity.LoginRequest;
-import com.gk.study.entity.PhoneLoginRequest;
-import com.gk.study.entity.WeChatLoginRequest;
+import com.gk.study.requestEntity.LoginRequest;
+import com.gk.study.requestEntity.PhoneLoginRequest;
+import com.gk.study.requestEntity.WeChatLoginRequest;
 import com.gk.study.jwt.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;

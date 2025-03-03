@@ -2,7 +2,7 @@ package com.gk.study.abandoned;
 
 import com.gk.study.common.APIResponse;
 import com.gk.study.common.ResponeCode;
-import com.gk.study.entity.RegisterRequest;
+import com.gk.study.requestEntity.RegisterRequest;
 import com.gk.study.entity.User;
 import com.gk.study.entity.WeChatOpenInfo;
 import com.gk.study.permission.Access;
@@ -21,7 +21,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -42,11 +41,11 @@ public class UserController {
     @Value("${File.uploadPath}")
     private String uploadPath;
 
-    @RequestMapping(value = "/list", method = RequestMethod.GET)
-    public APIResponse list(String keyword){
-        List<User> list =  userService.getUserList(keyword);
-        return new APIResponse(ResponeCode.SUCCESS, "查询成功", list);
-    }
+//    @RequestMapping(value = "/list", method = RequestMethod.GET)
+//    public APIResponse list(String keyword){
+//        List<User> list =  userService.getUserList(keyword);
+//        return new APIResponse(ResponeCode.SUCCESS, "查询成功", list);
+//    }
 
     @RequestMapping(value = "/detail", method = RequestMethod.GET)
     public APIResponse detail(String userId){

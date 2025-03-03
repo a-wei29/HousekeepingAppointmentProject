@@ -18,11 +18,13 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     UserMapper userMapper;
 
     @Override
-    public List<User> getUserList(String keyword) {
-        QueryWrapper<User> queryWrapper = new QueryWrapper();
-        if(StringUtils.isNotBlank(keyword)){
-            // like查询
-            queryWrapper.like("username", keyword);
+    public List<User> getUserList(Integer role, String mobile) {
+        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+        if (role != null) {
+            queryWrapper.eq("role", role);
+        }
+        if (StringUtils.isNotBlank(mobile)) {
+            queryWrapper.like("mobile", mobile);
         }
         queryWrapper.orderBy(true, false, "create_time");
         return userMapper.selectList(queryWrapper);

@@ -6,7 +6,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 public interface UserService {
-    List<User> getUserList(String keyword);
+    List<User> getUserList(Integer role, String mobile);
     User getAdminUser(User user);
     User getNormalUser(User user);
     void createUser(User user);

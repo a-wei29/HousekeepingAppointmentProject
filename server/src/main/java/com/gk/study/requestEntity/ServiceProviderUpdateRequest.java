@@ -1,20 +1,20 @@
-package com.gk.study.entity;
+package com.gk.study.requestEntity;
 
 import lombok.Data;
 
 @Data
-public class ServiceProviderRegisterRequest {
-    private Long userId;
+public class ServiceProviderUpdateRequest {
+    private Long id;
     private String name;
     private String avatar;
     private String description;
 
-    public Long getUserId() {
-        return userId;
+    public Long getId() {
+        return id;
     }
 
-    public void setUserId(Long userId) {
-        this.userId = userId;
+    public void setId(Long id) {
+        this.id = id;
     }
 
     public String getName() {
@@ -41,5 +41,6 @@ public class ServiceProviderRegisterRequest {
         this.description = description;
     }
 
-    // 其他必要字段...
+
+    // 其他可更新字段...
 }

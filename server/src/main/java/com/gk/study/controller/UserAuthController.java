@@ -6,6 +6,7 @@ import com.gk.study.entity.*;
 import com.gk.study.jwt.JwtUtil;
 import com.gk.study.permission.Access;
 import com.gk.study.permission.AccessLevel;
+import com.gk.study.requestEntity.*;
 import com.gk.study.service.UserService;
 import com.gk.study.userenum.UserRole;
 import io.swagger.v3.oas.annotations.Operation;
@@ -55,18 +56,20 @@ public class UserAuthController {
     @Value("${File.uploadPath}")
     private String uploadPath;
 
-    // ================== 用户列表、详情（后台/通用接口） ==================
     @Operation(
             summary = "获取用户列表",
-            description = "查询用户列表，可以根据关键词进行模糊搜索。",
+            description = "查询用户列表，可以根据角色和手机号进行模糊搜索。",
             responses = {
                     @ApiResponse(responseCode = "200", description = "查询成功"),
                     @ApiResponse(responseCode = "400", description = "查询参数不合法")
             }
     )
     @GetMapping("/list")
-    public ResponseEntity<APIResponse<?>> list( @Parameter(description = "查询的关键词，可选") @RequestParam(required=false) String keyword){
-        List<User> list = userService.getUserList(keyword);
+    public ResponseEntity<APIResponse<?>> list(@RequestBody UserListRequest request) {
+        // 日志打印接口入参
+        logger.info("调用 /list 接口, role: {}, mobile: {}", request.getRole(), request.getMobile());
+
+        List<User> list = userService.getUserList(request.getRole(), request.getMobile());
         return ResponseEntity.ok(
                 new APIResponse<>(ResponeCode.SUCCESS, "查询成功", list)
         );

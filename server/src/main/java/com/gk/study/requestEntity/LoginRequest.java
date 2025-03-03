@@ -1,4 +1,4 @@
-package com.gk.study.entity;
+package com.gk.study.requestEntity;
 
 import lombok.Data;
 
