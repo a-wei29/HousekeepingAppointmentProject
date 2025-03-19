@@ -1,15 +1,15 @@
 package com.gk.study.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.StringUtils;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.gk.study.service.UserService;
 import com.gk.study.entity.User;
 import com.gk.study.mapper.UserMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 @Service
 public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements UserService {
@@ -18,7 +18,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     UserMapper userMapper;
 
     @Override
-    public List<User> getUserList(Integer role, String mobile) {
+    public IPage<User> getUserList(Integer role, String mobile, Page<User> pageParam) {
         QueryWrapper<User> queryWrapper = new QueryWrapper<>();
         if (role != null) {
             queryWrapper.eq("role", role);
@@ -27,8 +27,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             queryWrapper.like("mobile", mobile);
         }
         queryWrapper.orderBy(true, false, "create_time");
-        return userMapper.selectList(queryWrapper);
+        return userMapper.selectPage(pageParam, queryWrapper);
     }
+
 
     @Override
     public User getAdminUser(User user) {

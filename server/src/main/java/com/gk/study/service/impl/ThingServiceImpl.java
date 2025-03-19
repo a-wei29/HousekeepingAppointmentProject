@@ -1,7 +1,9 @@
 package com.gk.study.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.StringUtils;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.gk.study.entity.Thing;
 import com.gk.study.entity.ThingTag;
@@ -77,9 +79,10 @@ public class ThingServiceImpl extends ServiceImpl<ThingMapper, Thing> implements
         return things;
     }
     @Override
-    public List<Thing> getThingListNew(String keyword, String sort, Long classificationId, Long tag,
-                                       Double userLat, Double userLng, Double distanceKm,
-                                       BigDecimal minPrice, BigDecimal maxPrice, Integer minScore) {
+    public IPage<Thing> getThingListNew(String keyword, String sort, Long classificationId, Long tag,
+                                        Double userLat, Double userLng, Double distanceKm,
+                                        BigDecimal minPrice, BigDecimal maxPrice, Integer minScore,
+                                        Page<Thing> pageParam) {
         QueryWrapper<Thing> queryWrapper = new QueryWrapper<>();
 
         // 1. 关键词模糊搜索 (title OR description)
@@ -123,8 +126,7 @@ public class ThingServiceImpl extends ServiceImpl<ThingMapper, Thing> implements
                     queryWrapper.orderByDesc("pv");
                     break;
                 case "recommend":
-                    // Assuming AI recommendation logic is implemented in service
-                    // For now, use recommend_count
+                    // 先按推荐数排序，后面可能再用 Java 层面加权排序
                     queryWrapper.orderByDesc("recommend_count");
                     break;
                 default:
@@ -134,10 +136,11 @@ public class ThingServiceImpl extends ServiceImpl<ThingMapper, Thing> implements
             queryWrapper.orderByDesc("create_time");
         }
 
-        // 7. 执行查询
-        List<Thing> things = mapper.selectList(queryWrapper);
+        // 7. 执行分页查询（先从数据库取出分页数据）
+        IPage<Thing> pageResult = mapper.selectPage(pageParam, queryWrapper);
+        List<Thing> things = pageResult.getRecords();
 
-        // 8. 地理位置筛选 (策略A: 后端Java层面计算距离并过滤)
+        // 8. 地理位置筛选（在 Java 层进行过滤和排序）
         if(userLat != null && userLng != null && distanceKm != null) {
             things = things.stream()
                     .filter(thing -> {
@@ -159,17 +162,20 @@ public class ThingServiceImpl extends ServiceImpl<ThingMapper, Thing> implements
             thing.setTags(tags);
         }
 
-        // 10. AI 推荐算法 (示例: 根据收藏数和心愿数简单加权)
-        // 这里仅作为示例，实际AI推荐应基于更复杂的用户行为和偏好
+        // 10. AI 推荐算法处理（如果sort为recommend，则重新排序）
         if("recommend".equals(sort)) {
             things = things.stream()
                     .sorted(Comparator.comparingDouble(this::calculateRecommendScore).reversed())
                     .collect(Collectors.toList());
         }
 
-        return things;
+        // 11. 将处理后的数据重新封装到分页对象中
+        // 这里 total 用原分页查询返回的总记录数，注意经过 Java 过滤后，实际返回数据可能比 total 少，
+        // 如果需要精确分页，建议将过滤条件尽量下推到数据库层面。
+        Page<Thing> resultPage = new Page<>(pageResult.getCurrent(), pageResult.getSize(), pageResult.getTotal());
+        resultPage.setRecords(things);
+        return resultPage;
     }
-
     /**
      * 示例推荐算法，实际应根据具体需求设计
      */

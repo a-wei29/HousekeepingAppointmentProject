@@ -1,12 +1,17 @@
 package com.gk.study.service;
 
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.gk.study.entity.User;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 public interface UserService {
-    List<User> getUserList(Integer role, String mobile);
+//    List<User> getUserList(Integer role, String mobile);
+
+    IPage<User> getUserList(Integer role, String mobile, Page<User> pageParam);
+
     User getAdminUser(User user);
     User getNormalUser(User user);
     void createUser(User user);

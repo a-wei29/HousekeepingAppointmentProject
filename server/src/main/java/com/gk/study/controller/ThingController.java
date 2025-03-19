@@ -1,5 +1,7 @@
 package com.gk.study.controller;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.gk.study.common.APIResponse;
 import com.gk.study.common.ResponeCode;
 import com.gk.study.entity.ServiceProvider;
@@ -75,24 +77,28 @@ public class ThingController {
             @Parameter(description = "过滤的最大距离，默认10公里") @RequestParam(required = false, defaultValue = "10") Double distanceKm,
             @Parameter(description = "最低价格") @RequestParam(required = false) BigDecimal minPrice,
             @Parameter(description = "最高价格") @RequestParam(required = false) BigDecimal maxPrice,
-            @Parameter(description = "最低评分") @RequestParam(required = false) Integer minScore
+            @Parameter(description = "最低评分") @RequestParam(required = false) Integer minScore,
+            @Parameter(description = "当前页码") @RequestParam(required = false, defaultValue = "1") int page,
+            @Parameter(description = "每页记录数") @RequestParam(required = false, defaultValue = "10") int size
     ) {
-        logger.info("Listing things with filters - keyword: {}, sort: {}, classificationId: {}, tag: {}, latitude: {}, longitude: {}, distanceKm: {}, minPrice: {}, maxPrice: {}, minScore: {}",
-                keyword, sort, classificationId, tag, latitude, longitude, distanceKm, minPrice, maxPrice, minScore);
+        logger.info("Listing things with filters - keyword: {}, sort: {}, classificationId: {}, tag: {}, latitude: {}, longitude: {}, distanceKm: {}, minPrice: {}, maxPrice: {}, minScore: {}, page: {}, size: {}",
+                keyword, sort, classificationId, tag, latitude, longitude, distanceKm, minPrice, maxPrice, minScore, page, size);
 
-        List<Thing> list = thingService.getThingListNew(keyword, sort, classificationId, tag,
+        // 创建分页对象（以 MyBatis Plus 为例）
+        Page<Thing> pageParam = new Page<>(page, size);
+        // 假设 getThingListNew 方法也支持分页查询，可以新增分页参数
+        IPage<Thing> resultPage = thingService.getThingListNew(keyword, sort, classificationId, tag,
                 latitude, longitude, distanceKm,
-                minPrice, maxPrice, minScore);
+                minPrice, maxPrice, minScore, pageParam);
 
-        // 如果查询结果为空
-        if (list == null || list.isEmpty()) {
+        if (resultPage.getRecords() == null || resultPage.getRecords().isEmpty()) {
             return ResponseEntity.ok(
-                    new APIResponse<>(ResponeCode.SUCCESS, "暂无家政服务数据", list)
+                    new APIResponse<>(ResponeCode.SUCCESS, "暂无家政服务数据", resultPage)
             );
         }
 
         return ResponseEntity.ok(
-                new APIResponse<>(ResponeCode.SUCCESS, "查询成功", list)
+                new APIResponse<>(ResponeCode.SUCCESS, "查询成功", resultPage)
         );
     }
 

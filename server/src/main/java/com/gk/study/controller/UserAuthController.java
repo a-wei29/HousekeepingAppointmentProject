@@ -1,5 +1,7 @@
 package com.gk.study.controller;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.gk.study.common.APIResponse;
 import com.gk.study.common.ResponeCode;
 import com.gk.study.entity.*;
@@ -66,12 +68,15 @@ public class UserAuthController {
     )
     @GetMapping("/list")
     public ResponseEntity<APIResponse<?>> list(@RequestBody UserListRequest request) {
-        // 日志打印接口入参
-        logger.info("调用 /list 接口, role: {}, mobile: {}", request.getRole(), request.getMobile());
+        logger.info("调用 /list 接口, role: {}, mobile: {}, page: {}, size: {}",
+                request.getRole(), request.getMobile(), request.getPage(), request.getSize());
 
-        List<User> list = userService.getUserList(request.getRole(), request.getMobile());
+        // 构造分页对象
+        Page<User> pageParam = new Page<>(request.getPage(), request.getSize());
+        IPage<User> resultPage = userService.getUserList(request.getRole(), request.getMobile(), pageParam);
+
         return ResponseEntity.ok(
-                new APIResponse<>(ResponeCode.SUCCESS, "查询成功", list)
+                new APIResponse<>(ResponeCode.SUCCESS, "查询成功", resultPage)
         );
     }
 
