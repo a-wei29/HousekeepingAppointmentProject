@@ -37,6 +37,11 @@ public class JwtUtil {
         }
     }
 
+    // 新增：从token中提取用户名（与getUsernameFromToken相同）
+    public String extractUsername(String token) {
+        return getUsernameFromToken(token); // 直接复用现有的实现
+    }
+
     // 检查token是否有效
     public boolean validateToken(String token) {
         try {
@@ -48,3 +53,4 @@ public class JwtUtil {
         }
     }
 }
+

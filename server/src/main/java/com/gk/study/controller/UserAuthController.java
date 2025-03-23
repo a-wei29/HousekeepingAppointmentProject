@@ -23,6 +23,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
@@ -115,19 +116,12 @@ public class UserAuthController {
             }
     )
     @PostMapping("/register")
-    public ResponseEntity<APIResponse<?>> register(@Parameter(description = "注册请求数据", required = true) @RequestBody RegisterRequest request) {
-        try {
-            // 如果有 wechatCode，就优先走微信注册，否则走普通注册
-            if (!StringUtils.isEmpty(request.getWechatCode())) {
-                return ResponseEntity.ok(handleWeChatRegister(request));
-            } else {
-                return ResponseEntity.ok(handleNormalRegister(request));
-            }
-        } catch (Exception e) {
-            logger.error("注册失败:", e);
-            return ResponseEntity.ok(
-                    new APIResponse<>(ResponeCode.FAIL, "注册失败: " + e.getMessage())
-            );
+    public ResponseEntity<APIResponse<?>> register(@Parameter(description = "注册请求数据", required = true) @RequestBody RegisterRequest request) throws IOException {
+        // 如果有 wechatCode，就优先走微信注册，否则走普通注册
+        if (!StringUtils.isEmpty(request.getWechatCode())) {
+            return ResponseEntity.ok(handleWeChatRegister(request));
+        } else {
+            return ResponseEntity.ok(handleNormalRegister(request));
         }
     }
 
@@ -232,7 +226,7 @@ public class UserAuthController {
             return ResponseEntity.ok(
                     new APIResponse<>(ResponeCode.FAIL, "用户名或密码错误")
             );
-        } catch (Exception e) {
+        } catch (AuthenticationException e) {
             return ResponseEntity.ok(
                     new APIResponse<>(ResponeCode.FAIL, "登录失败: " + e.getMessage())
             );
@@ -298,15 +292,9 @@ public class UserAuthController {
             }
     )
     @PostMapping("/loginByWeChat")
-    public ResponseEntity<APIResponse<?>> loginByWeChat(@Parameter(description = "微信登录请求数据", required = true)  @RequestBody WeChatLoginRequest request) {
+    public ResponseEntity<APIResponse<?>> loginByWeChat(@Parameter(description = "微信登录请求数据", required = true)  @RequestBody WeChatLoginRequest request) throws IOException {
         String openId;
-        try {
-            openId = getWeChatOpenId(request.getCode());
-        } catch (Exception e) {
-            return ResponseEntity.ok(
-                    new APIResponse<>(ResponeCode.FAIL, "微信登录失败: " + e.getMessage())
-            );
-        }
+        openId = getWeChatOpenId(request.getCode());
         // 若不存在则自动注册
         String username = loadOrCreateUserByWeChatOpenId(openId);
         String jwt = jwtUtil.generateToken(username);
@@ -491,6 +479,38 @@ public class UserAuthController {
             );
         }
     }
+
+    @Operation(
+            summary = "获取当前登录的用户信息",
+            description = "根据JWT令牌获取当前登录的用户信息。",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "查询成功"),
+                    @ApiResponse(responseCode = "401", description = "未授权")
+            }
+    )
+    @GetMapping("/currentUser")
+    public ResponseEntity<APIResponse<?>> getCurrentUserInfo(@RequestHeader("Authorization") String token) {
+        // 1. 从请求头中提取 token
+        String jwtToken = token.startsWith("Bearer ") ? token.substring(7) : token;
+
+        // 2. 解析 token，获取用户名
+        String username = jwtUtil.extractUsername(jwtToken);
+
+        // 3. 根据用户名查询用户信息
+        User user = userService.getUserByUserName(username);
+
+        // 4. 返回用户信息
+        if (user == null) {
+            return ResponseEntity.ok(
+                    new APIResponse<>(ResponeCode.FAIL, "用户不存在")
+            );
+        }
+
+        return ResponseEntity.ok(
+                new APIResponse<>(ResponeCode.SUCCESS, "查询成功", user)
+        );
+    }
+
 
     // 如果需要保存头像
     private String saveAvatar(User user) throws IOException {
