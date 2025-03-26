@@ -10,7 +10,7 @@ import com.gk.study.permission.Access;
 import com.gk.study.permission.AccessLevel;
 import com.gk.study.requestEntity.*;
 import com.gk.study.service.UserService;
-import com.gk.study.userenum.UserRole;
+import com.gk.study.enums.UserRole;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -34,7 +34,6 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 

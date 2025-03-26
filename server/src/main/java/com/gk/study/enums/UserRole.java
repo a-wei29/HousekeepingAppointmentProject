@@ -1,4 +1,4 @@
-package com.gk.study.userenum;
+package com.gk.study.enums;
 
 public enum UserRole {
     NORMAL_USER(0, "普通用户"),

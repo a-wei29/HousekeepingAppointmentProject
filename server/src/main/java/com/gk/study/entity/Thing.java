@@ -63,6 +63,17 @@ public class Thing implements Serializable {
     @TableField
     public Long userId;// 发布服务的用户ID
 
+    @TableField(exist = false)
+    private String classificationName;
+
+    public String getClassificationName() {
+        return classificationName;
+    }
+
+    public void setClassificationName(String classificationName) {
+        this.classificationName = classificationName;
+    }
+
     public Long getId() {
         return id;
     }

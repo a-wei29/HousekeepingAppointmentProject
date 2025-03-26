@@ -8,13 +8,14 @@ import com.gk.study.entity.ServiceProvider;
 import com.gk.study.entity.Thing;
 import com.gk.study.entity.ThingCollect;
 import com.gk.study.entity.User;
+import com.gk.study.enums.HousekeepingServiceCategory;
 import com.gk.study.permission.Access;
 import com.gk.study.permission.AccessLevel;
 import com.gk.study.service.ServiceProviderService;
 import com.gk.study.service.ThingCollectService;
 import com.gk.study.service.ThingService;
 import com.gk.study.service.UserService;
-import com.gk.study.userenum.UserRole;
+import com.gk.study.enums.UserRole;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -91,6 +92,20 @@ public class ThingController {
                 latitude, longitude, distanceKm,
                 minPrice, maxPrice, minScore, pageParam);
 
+
+        // 根据每个 Thing 的 classificationId 设置对应的分类名称
+        if (resultPage.getRecords() != null) {
+            for (Thing thing : resultPage.getRecords()) {
+                if (thing.getClassificationId() != null) {
+                    HousekeepingServiceCategory category = HousekeepingServiceCategory.getByCode(thing.getClassificationId().intValue());
+                    if (category != null) {
+                        thing.setClassificationName(category.getDescription());
+                    }
+                }
+            }
+        }
+
+
         if (resultPage.getRecords() == null || resultPage.getRecords().isEmpty()) {
             return ResponseEntity.ok(
                     new APIResponse<>(ResponeCode.SUCCESS, "暂无家政服务数据", resultPage)
@@ -142,11 +157,11 @@ public class ThingController {
     )
     @PostMapping("/create")
     @Transactional
-    public ResponseEntity<APIResponse<?>> create(@Parameter(description = "要创建的家政服务信息", required = true) @ModelAttribute Thing thing) throws IOException {
+    public ResponseEntity<APIResponse<?>> create(@Parameter(description = "要创建的家政服务信息", required = true) @RequestBody Thing thing) throws IOException {
         logger.info("Creating thing: {}", thing);
 
         User currentUser = userService.getUserDetail(String.valueOf(thing.userId));
-        if (currentUser == null || currentUser.getRole() != UserRole.NORMAL_USER.getCode() || currentUser.getRole() != UserRole.ADMIN.getCode() ) {
+        if (currentUser == null || currentUser.getRole() == UserRole.NORMAL_USER.getCode()) {
             // 如果当前用户不是服务提供者，返回权限不足的错误
             return ResponseEntity.ok(
                     new APIResponse<>(ResponeCode.FAIL, "权限不足，只有服务提供者才能发布家政服务")
@@ -163,6 +178,14 @@ public class ThingController {
         if (thing.getPrice() == null || thing.getPrice().compareTo(BigDecimal.ZERO) <= 0) {
             return ResponseEntity.ok(
                     new APIResponse<>(ResponeCode.FAIL, "价格必须为正数")
+            );
+        }
+
+        // 2. 对传入的分类ID进行校验
+        if (thing.getClassificationId() == null ||
+                !HousekeepingServiceCategory.isValid(thing.getClassificationId().intValue())) {
+            return ResponseEntity.ok(
+                    new APIResponse<>(ResponeCode.FAIL, "无效的分类ID")
             );
         }
 

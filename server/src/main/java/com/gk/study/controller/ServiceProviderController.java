@@ -13,7 +13,7 @@ import com.gk.study.permission.Access;
 import com.gk.study.permission.AccessLevel;
 import com.gk.study.service.ServiceProviderService;
 import com.gk.study.service.UserService;
-import com.gk.study.userenum.UserRole;
+import com.gk.study.enums.UserRole;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import org.apache.commons.lang3.StringUtils;

@@ -35,10 +35,13 @@ public class ClassificationController {
         return new APIResponse(ResponeCode.SUCCESS, "查询成功", list);
     }
 
-    @Access(level = AccessLevel.ADMIN)
+
     @RequestMapping(value = "/create", method = RequestMethod.POST)
     @Transactional
     public APIResponse create(Classification classification) throws IOException {
+
+        logger.info("Creating Classification: {}", classification);
+
         service.createClassification(classification);
         return new APIResponse(ResponeCode.SUCCESS, "创建成功");
     }
