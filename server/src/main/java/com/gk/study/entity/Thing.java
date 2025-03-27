@@ -49,10 +49,10 @@ public class Thing implements Serializable {
     @TableField
     public Long classificationId;
     @TableField
-    public Double Latitude;
+    public Double latitude;
 
     @TableField
-    public Double Longitude;
+    public Double longitude;
 
     @TableField(exist = false)
     public List<Long> tags; // 标签
@@ -235,18 +235,18 @@ public class Thing implements Serializable {
     }
 
     public Double getLatitude() {
-        return Latitude;
+        return latitude;
     }
 
     public void setLatitude(Double latitude) {
-        Latitude = latitude;
+        this.latitude = latitude;
     }
 
     public Double getLongitude() {
-        return Longitude;
+        return longitude;
     }
 
     public void setLongitude(Double longitude) {
-        Longitude = longitude;
+        this.longitude = longitude;
     }
 }
