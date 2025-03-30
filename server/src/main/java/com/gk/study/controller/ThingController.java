@@ -9,6 +9,7 @@ import com.gk.study.entity.Thing;
 import com.gk.study.entity.ThingCollect;
 import com.gk.study.entity.User;
 import com.gk.study.enums.HousekeepingServiceCategory;
+import com.gk.study.jwt.JwtUtil;
 import com.gk.study.permission.Access;
 import com.gk.study.permission.AccessLevel;
 import com.gk.study.service.ServiceProviderService;
@@ -53,6 +54,9 @@ public class ThingController {
     @Autowired
     UserService userService;
 
+    @Autowired
+    private JwtUtil jwtUtil;
+
     @Value("${File.uploadPath}")
     private String uploadPath;
 
@@ -80,42 +84,65 @@ public class ThingController {
             @Parameter(description = "最高价格") @RequestParam(required = false) BigDecimal maxPrice,
             @Parameter(description = "最低评分") @RequestParam(required = false) Integer minScore,
             @Parameter(description = "当前页码") @RequestParam(required = false, defaultValue = "1") int page,
-            @Parameter(description = "每页记录数") @RequestParam(required = false, defaultValue = "10") int size
+            @Parameter(description = "每页记录数") @RequestParam(required = false, defaultValue = "10") int size,
+            @RequestHeader("Authorization") String token
     ) {
         logger.info("Listing things with filters - keyword: {}, sort: {}, classificationId: {}, tag: {}, latitude: {}, longitude: {}, distanceKm: {}, minPrice: {}, maxPrice: {}, minScore: {}, page: {}, size: {}",
                 keyword, sort, classificationId, tag, latitude, longitude, distanceKm, minPrice, maxPrice, minScore, page, size);
 
-        // 创建分页对象（以 MyBatis Plus 为例）
+        // 1. 解析 token 获取当前用户信息（参考 /currentUser 接口）
+        String jwtToken = token.startsWith("Bearer ") ? token.substring(7) : token;
+        String username = jwtUtil.extractUsername(jwtToken);
+        User currentUser = userService.getUserByUserName(username);
+        if (currentUser == null) {
+            return ResponseEntity.ok(new APIResponse<>(ResponeCode.FAIL, "用户不存在"));
+        }
+
+        // 2. 创建分页对象（以 MyBatis Plus 为例）
         Page<Thing> pageParam = new Page<>(page, size);
-        // 假设 getThingListNew 方法也支持分页查询，可以新增分页参数
+        // 假设 getThingListNew 方法支持分页查询，可传入分页参数
         IPage<Thing> resultPage = thingService.getThingListNew(keyword, sort, classificationId, tag,
                 latitude, longitude, distanceKm,
                 minPrice, maxPrice, minScore, pageParam);
 
-
-        // 根据每个 Thing 的 classificationId 设置对应的分类名称
+        // 3. 遍历查询结果，为每个 Thing 设置分类名称、服务发布者名称及收藏标志位
         if (resultPage.getRecords() != null) {
             for (Thing thing : resultPage.getRecords()) {
+                // 设置分类名称
                 if (thing.getClassificationId() != null) {
                     HousekeepingServiceCategory category = HousekeepingServiceCategory.getByCode(thing.getClassificationId().intValue());
                     if (category != null) {
                         thing.setClassificationName(category.getDescription());
                     }
                 }
+                // 设置服务发布者名称（根据 thing.userId 获取）
+                if (thing.getUserId() != null) {
+                    User publisher = userService.getUserDetail(thing.getUserId().toString());
+                    if (publisher != null) {
+                        thing.setPublisherName(publisher.getUsername());
+                    }
+                }
+                // 设置收藏标志位：调用 ThingCollectService.getThingCollect 判断当前用户是否收藏了该服务
+                if (thing.getId() != null) {
+                    ThingCollect thingCollect = thingCollectService.getThingCollect(currentUser.getId().toString(), thing.getId().toString());
+                    thing.setCollected(thingCollect != null ? 1 : 0);
+                } else {
+                    thing.setCollected(0);
+                }
             }
         }
 
-
+        // 4. 返回结果
         if (resultPage.getRecords() == null || resultPage.getRecords().isEmpty()) {
             return ResponseEntity.ok(
                     new APIResponse<>(ResponeCode.SUCCESS, "暂无家政服务数据", resultPage)
             );
         }
-
         return ResponseEntity.ok(
                 new APIResponse<>(ResponeCode.SUCCESS, "查询成功", resultPage)
         );
     }
+
 
     @Operation(
             summary = "获取家政服务详情",

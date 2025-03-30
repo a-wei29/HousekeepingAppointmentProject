@@ -66,6 +66,30 @@ public class Thing implements Serializable {
     @TableField(exist = false)
     private String classificationName;
 
+
+    @TableField(exist = false)
+    private String publisherName;
+
+    @TableField(exist = false)
+    private Integer collected;
+
+    // 生成对应的 getter/setter
+    public String getPublisherName() {
+        return publisherName;
+    }
+
+    public void setPublisherName(String publisherName) {
+        this.publisherName = publisherName;
+    }
+
+    public Integer getCollected() {
+        return collected;
+    }
+
+    public void setCollected(Integer collected) {
+        this.collected = collected;
+    }
+
     public String getClassificationName() {
         return classificationName;
     }
