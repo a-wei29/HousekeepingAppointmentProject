@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.gk.study.entity.Thing;
 import com.gk.study.entity.ThingTag;
+import com.gk.study.enums.HousekeepingServiceCategory;
 import com.gk.study.mapper.ThingMapper;
 import com.gk.study.mapper.ThingTagMapper;
 import com.gk.study.service.ThingService;
@@ -241,10 +242,25 @@ public class ThingServiceImpl extends ServiceImpl<ThingMapper, Thing> implements
     }
 
     @Override
-    public List<Thing> getUserThing(String userId) {
+    public IPage<Thing> getUserThing(Long userId, Page<Thing> pageParam) {
         QueryWrapper<Thing> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("user_id", userId);
-        return mapper.selectList(queryWrapper);
+
+        // 执行分页查询
+        IPage<Thing> pageResult = mapper.selectPage(pageParam, queryWrapper);
+
+        // 为每个 Thing 根据 classificationId 填充分类名称
+        if (pageResult.getRecords() != null) {
+            for (Thing thing : pageResult.getRecords()) {
+                if (thing.getClassificationId() != null) {
+                    HousekeepingServiceCategory category = HousekeepingServiceCategory.getByCode(thing.getClassificationId().intValue());
+                    if (category != null) {
+                        thing.setClassificationName(category.getDescription());
+                    }
+                }
+            }
+        }
+        return pageResult;
     }
 
     public void setThingTags(Thing thing) {

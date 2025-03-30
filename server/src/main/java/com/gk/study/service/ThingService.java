@@ -31,5 +31,5 @@ public interface ThingService {
 
     void addCollectCount(String thingId);
 
-    List<Thing> getUserThing(String userId);
+    IPage<Thing> getUserThing(Long userId, Page<Thing> pageParam) ;
 }

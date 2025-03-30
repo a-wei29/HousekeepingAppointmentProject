@@ -457,9 +457,6 @@ public class ThingController {
         );
     }
 
-    /**
-     * 获取用户发布的家政服务列表
-     */
     @Operation(
             summary = "获取用户发布的家政服务列表",
             description = "获取指定用户发布的所有家政服务列表。",
@@ -469,18 +466,27 @@ public class ThingController {
             }
     )
     @GetMapping("/listUserThing")
-    public ResponseEntity<APIResponse<?>> listUserThing(@Parameter(description = "用户ID", required = true) @RequestParam Long userId) {
-        logger.info("Listing things for user ID: {}", userId);
-        List<Thing> list = thingService.getUserThing(String.valueOf(userId));
+    public ResponseEntity<APIResponse<?>> listUserThing(
+            @Parameter(description = "用户ID", required = true) @RequestParam Long userId,
+            @Parameter(description = "当前页码") @RequestParam(required = false, defaultValue = "1") int page,
+            @Parameter(description = "每页记录数") @RequestParam(required = false, defaultValue = "10") int size
+    ) {
+        logger.info("Listing things for user ID: {}, page: {}, size: {}", userId, page, size);
 
-        if (list == null || list.isEmpty()) {
+        // 创建分页对象
+        Page<Thing> pageParam = new Page<>(page, size);
+
+        // 调用支持分页的 service 方法
+        IPage<Thing> resultPage = thingService.getUserThing(userId, pageParam);
+
+        if (resultPage.getRecords() == null || resultPage.getRecords().isEmpty()) {
             return ResponseEntity.ok(
-                    new APIResponse<>(ResponeCode.SUCCESS, "该用户尚未发布家政服务", list)
+                    new APIResponse<>(ResponeCode.SUCCESS, "该用户尚未发布家政服务", resultPage)
             );
         }
 
         return ResponseEntity.ok(
-                new APIResponse<>(ResponeCode.SUCCESS, "查询成功", list)
+                new APIResponse<>(ResponeCode.SUCCESS, "查询成功", resultPage)
         );
     }
 }
