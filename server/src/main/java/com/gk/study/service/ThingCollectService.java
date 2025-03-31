@@ -9,6 +9,6 @@ import java.util.Map;
 public interface ThingCollectService {
     List<Map> getThingCollectList(String userId);
     void createThingCollect(ThingCollect thingCollect);
-    void deleteThingCollect(String id);
+    int deleteThingCollect(String userId, String thingId);
     ThingCollect getThingCollect(String userId, String thingId);
 }

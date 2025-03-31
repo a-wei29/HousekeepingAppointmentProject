@@ -27,8 +27,11 @@ class ThingCollectServiceImpl extends ServiceImpl<ThingCollectMapper, ThingColle
     }
 
     @Override
-    public void deleteThingCollect(String id) {
-        mapper.deleteById(id);
+    public int deleteThingCollect(String userId, String thingId) {
+        QueryWrapper<ThingCollect> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("thing_id", thingId)
+                .eq("user_id", userId);
+        return mapper.delete(queryWrapper);
     }
 
     @Override

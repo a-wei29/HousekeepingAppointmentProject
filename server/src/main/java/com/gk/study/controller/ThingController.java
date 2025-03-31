@@ -406,14 +406,19 @@ public class ThingController {
                     @ApiResponse(responseCode = "404", description = "未找到收藏记录")
             }
     )
-    @Access(level = AccessLevel.LOGIN)
     @PostMapping("/unCollect")
     @Transactional
-    public ResponseEntity<APIResponse<?>> unCollect(@Parameter(description = "家政服务ID", required = true) @RequestParam Long id) throws IOException {
-        thingCollectService.deleteThingCollect(String.valueOf(id));
-        return ResponseEntity.ok(
-                new APIResponse<>(ResponeCode.SUCCESS, "取消收藏成功")
-        );
+    public ResponseEntity<APIResponse<?>> unCollect(
+            @Parameter(description = "家政服务ID", required = true) @RequestParam Long thingId,
+            @Parameter(description = "用户ID", required = true) @RequestParam Long userId
+    ) throws IOException {
+        // 调用 service 方法，返回删除的记录数
+        int deleteCount = thingCollectService.deleteThingCollect(String.valueOf(userId), String.valueOf(thingId));
+        if (deleteCount > 0) {
+            return ResponseEntity.ok(new APIResponse<>(ResponeCode.SUCCESS, "取消收藏成功"));
+        } else {
+            return ResponseEntity.ok(new APIResponse<>(ResponeCode.FAIL, "未找到收藏记录"));
+        }
     }
 
     /**
