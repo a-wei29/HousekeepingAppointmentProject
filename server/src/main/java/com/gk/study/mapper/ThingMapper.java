@@ -6,6 +6,5 @@ import org.apache.ibatis.annotations.Mapper;
 
 @Mapper
 public interface ThingMapper extends BaseMapper<Thing> {
-//    List<Thing> getList();
-//    boolean update(Thing thing);
+
 }
