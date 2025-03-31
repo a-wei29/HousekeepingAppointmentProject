@@ -47,16 +47,16 @@ public class ThingCollectController {
         }
     }
 
-    /**
-     * 取消收藏家政服务
-     */
-    @Access(level = AccessLevel.LOGIN)
-    @RequestMapping(value = "/unCollect", method = RequestMethod.POST)
-    @Transactional
-    public APIResponse unCollect(@RequestParam Long id) throws IOException {
-        thingCollectService.deleteThingCollect(String.valueOf(id));
-        return new APIResponse(ResponeCode.SUCCESS, "取消收藏成功");
-    }
+//    /**
+//     * 取消收藏家政服务
+//     */
+//    @Access(level = AccessLevel.LOGIN)
+//    @RequestMapping(value = "/unCollect", method = RequestMethod.POST)
+//    @Transactional
+//    public APIResponse unCollect(@RequestParam Long id) throws IOException {
+//        thingCollectService.deleteThingCollect(String.valueOf(id));
+//        return new APIResponse(ResponeCode.SUCCESS, "取消收藏成功");
+//    }
 
     /**
      * 获取用户收藏的家政服务列表
