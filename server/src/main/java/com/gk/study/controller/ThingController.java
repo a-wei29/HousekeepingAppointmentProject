@@ -153,15 +153,22 @@ public class ThingController {
             }
     )
     @GetMapping("/detail")
-    public ResponseEntity<APIResponse<?>> detail( @Parameter(description = "家政服务ID", required = true) @RequestParam Long id) {
+    public ResponseEntity<APIResponse<?>> detail(
+            @Parameter(description = "家政服务ID", required = true) @RequestParam Long id) {
         logger.info("Fetching detail for thing ID: {}", id);
         Thing thing = thingService.getThingById(id.toString());
 
         // 如果查询不到对应服务
         if (thing == null) {
-            return ResponseEntity.ok(
-                    new APIResponse<>(ResponeCode.FAIL, "该家政服务不存在或已被删除")
-            );
+            return ResponseEntity.ok(new APIResponse<>(ResponeCode.FAIL, "该家政服务不存在或已被删除"));
+        }
+
+        // 根据分类ID获取对应的分类名称，并设置到 classificationName 字段
+        if (thing.getClassificationId() != null) {
+            HousekeepingServiceCategory category = HousekeepingServiceCategory.getByCode(thing.getClassificationId().intValue());
+            if (category != null) {
+                thing.setClassificationName(category.getDescription());
+            }
         }
 
         // 获取服务提供者信息
@@ -170,9 +177,7 @@ public class ThingController {
         result.put("thing", thing);
         result.put("provider", provider);
 
-        return ResponseEntity.ok(
-                new APIResponse<>(ResponeCode.SUCCESS, "查询成功", result)
-        );
+        return ResponseEntity.ok(new APIResponse<>(ResponeCode.SUCCESS, "查询成功", result));
     }
     @Operation(
             summary = "创建家政服务",
