@@ -32,4 +32,10 @@ public interface ThingService {
     void addCollectCount(String thingId);
 
     IPage<Thing> getUserThing(Long userId, Page<Thing> pageParam) ;
+
+    /**
+     * 收藏数减1
+     * @param thingId 家政服务ID
+     */
+    void reduceCollectCount(String thingId);
 }

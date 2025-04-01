@@ -415,6 +415,8 @@ public class ThingController {
         // 调用 service 方法，返回删除的记录数
         int deleteCount = thingCollectService.deleteThingCollect(String.valueOf(userId), String.valueOf(thingId));
         if (deleteCount > 0) {
+            // 删除成功后，减少对应家政服务的收藏数
+            thingService.reduceCollectCount(String.valueOf(thingId));
             return ResponseEntity.ok(new APIResponse<>(ResponeCode.SUCCESS, "取消收藏成功"));
         } else {
             return ResponseEntity.ok(new APIResponse<>(ResponeCode.FAIL, "未找到收藏记录"));

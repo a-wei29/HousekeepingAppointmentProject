@@ -242,6 +242,14 @@ public class ThingServiceImpl extends ServiceImpl<ThingMapper, Thing> implements
     }
 
     @Override
+    public void reduceCollectCount(String thingId) {
+        Thing thing = mapper.selectById(thingId);
+        if (thing != null && thing.getCollectCount() > 0) {
+            thing.setCollectCount(thing.getCollectCount() - 1);
+            mapper.updateById(thing);
+        }
+    }
+    @Override
     public IPage<Thing> getUserThing(Long userId, Page<Thing> pageParam) {
         QueryWrapper<Thing> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("user_id", userId);
