@@ -35,6 +35,14 @@ public class Order implements Serializable {
     public String receiverPhone;
     @TableField
     public String remark;
+    // 新增字段：用户所在地纬度
+    @TableField("receiver_latitude")
+    public String receiverLatitude;
+
+    // 新增字段：用户所在地经度
+    @TableField("receiver_longitude")
+    public String receiverLongitude;
+
 
     @TableField(exist = false)
     public String username; // 用户名
@@ -45,6 +53,21 @@ public class Order implements Serializable {
     @TableField(exist = false)
     public String price; // 商品价格
 
+    public String getReceiverLatitude() {
+        return receiverLatitude;
+    }
+
+    public void setReceiverLatitude(String receiverLatitude) {
+        this.receiverLatitude = receiverLatitude;
+    }
+
+    public String getReceiverLongitude() {
+        return receiverLongitude;
+    }
+
+    public void setReceiverLongitude(String receiverLongitude) {
+        this.receiverLongitude = receiverLongitude;
+    }
 
     public Long getId() {
         return id;
