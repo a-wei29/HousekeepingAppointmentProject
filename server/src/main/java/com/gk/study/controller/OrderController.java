@@ -10,6 +10,7 @@ import com.gk.study.enums.OrderStatus;
 import com.gk.study.jwt.JwtUtil;
 import com.gk.study.permission.Access;
 import com.gk.study.permission.AccessLevel;
+import com.gk.study.requestEntity.UpdateOrderStatusRequest;
 import com.gk.study.service.OrderService;
 import com.gk.study.service.OrderStatusFlowService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -94,23 +95,26 @@ public class OrderController {
     @PostMapping("/updateStatus")
     @Transactional
     public ResponseEntity<APIResponse<?>> updateOrderStatus(
-            @Parameter(description = "订单ID", required = true) @RequestParam Long orderId,
-            @Parameter(description = "状态码（对应 OrderStatus 枚举中的 code）", required = true) @RequestParam String status,
+            @RequestBody @Parameter(description = "订单状态更新请求体", required = true) UpdateOrderStatusRequest request,
             @Parameter(description = "授权token", required = true) @RequestHeader("Authorization") String token) {
+
         int statusCode;
         try {
-            statusCode = Integer.parseInt(status);
+            statusCode = Integer.parseInt(request.getStatus());
         } catch (NumberFormatException e) {
             return ResponseEntity.ok(new APIResponse<>(ResponeCode.FAIL, "状态码格式不正确"));
         }
+
         OrderStatus orderStatus = OrderStatus.getByCode(statusCode);
         if (orderStatus == null) {
             return ResponseEntity.ok(new APIResponse<>(ResponeCode.FAIL, "无效的订单状态"));
         }
+
         // 获取枚举中对应的描述字符串
         String statusString = orderStatus.getDescription();
-        // 更新订单状态（Service 方法修改为接收 String 类型的状态）
-        orderService.updateOrderStatus(orderId, statusString);
+
+        // 注意：请修改数据库中 b_order 表的 status 列长度为足够的长度，例如 varchar(20)
+        orderService.updateOrderStatus(request.getOrderId(), statusString);
 
         // 获取操作人信息
         String jwtToken = token.startsWith("Bearer ") ? token.substring(7) : token;
@@ -118,7 +122,7 @@ public class OrderController {
 
         // 写入状态流记录
         OrderStatusFlow flow = new OrderStatusFlow();
-        flow.setOrderId(orderId.toString());
+        flow.setOrderId(request.getOrderId().toString());
         flow.setStatusCode(String.valueOf(statusCode));
         flow.setStatus(statusString);
         flow.setUpdateTime(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
