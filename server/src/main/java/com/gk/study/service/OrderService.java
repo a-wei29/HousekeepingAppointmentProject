@@ -35,13 +35,13 @@ public interface OrderService {
 
 
     /**
-     * 分页查询指定用户下的订单（用户下单的订单）
+     * 分页查询指定用户下的订单（用户下单的订单），可根据状态筛选
      */
-    IPage<Order> listOrdersByUserId(Long userId, Page<Order> page);
+    IPage<Order> listOrdersByUserId(Long userId, String status, Page<Order> page);
 
     /**
-     * 分页查询服务提供者发布的服务产生的订单
-     * 即查询 Order 中 thingId 对应的 Thing 表的 user_id 为 providerUserId 的记录
+     * 分页查询服务提供者发布的服务产生的订单，可根据状态筛选
      */
-    IPage<Order> listOrdersByProvider(Long providerUserId, Page<Order> page);
+    IPage<Order> listOrdersByProvider(Long providerUserId, String status, Page<Order> page);
+
 }

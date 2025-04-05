@@ -195,7 +195,7 @@ public class OrderController {
 
     @Operation(
             summary = "查询用户订单",
-            description = "根据用户ID查询该用户下单的所有订单，并支持分页查询。"
+            description = "根据用户ID查询该用户下单的所有订单，并支持分页查询。可选的筛选条件 status 表示订单状态，若传入，则只返回状态匹配的订单。"
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "查询成功"),
@@ -204,16 +204,19 @@ public class OrderController {
     @GetMapping("/userOrders")
     public ResponseEntity<APIResponse<?>> getUserOrders(
             @Parameter(description = "用户ID", required = true) @RequestParam Long userId,
+            @Parameter(description = "订单状态筛选", required = false) @RequestParam(required = false) String status,
             @Parameter(description = "当前页码", required = false) @RequestParam(defaultValue = "1") int page,
             @Parameter(description = "每页记录数", required = false) @RequestParam(defaultValue = "10") int size) {
+
         Page<Order> pageParam = new Page<>(page, size);
-        IPage<Order> resultPage = orderService.listOrdersByUserId(userId, pageParam);
+        // 调用 service 层新增的带状态筛选的方法
+        IPage<Order> resultPage = orderService.listOrdersByUserId(userId, status, pageParam);
         return ResponseEntity.ok(new APIResponse<>(ResponeCode.SUCCESS, "查询成功", resultPage));
     }
 
     @Operation(
             summary = "查询服务提供者订单",
-            description = "根据服务提供者ID查询其发布的服务被下的订单，并支持分页查询。"
+            description = "根据服务提供者ID查询其发布的服务被下的订单，并支持分页查询。可选的筛选条件 status 表示订单状态，若传入，则只返回状态匹配的订单。"
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "查询成功"),
@@ -222,10 +225,13 @@ public class OrderController {
     @GetMapping("/providerOrders")
     public ResponseEntity<APIResponse<?>> getProviderOrders(
             @Parameter(description = "服务提供者ID", required = true) @RequestParam Long providerUserId,
+            @Parameter(description = "订单状态筛选", required = false) @RequestParam(required = false) String status,
             @Parameter(description = "当前页码", required = false) @RequestParam(defaultValue = "1") int page,
             @Parameter(description = "每页记录数", required = false) @RequestParam(defaultValue = "10") int size) {
+
         Page<Order> pageParam = new Page<>(page, size);
-        IPage<Order> resultPage = orderService.listOrdersByProvider(providerUserId, pageParam);
+        // 调用 service 层新增的带状态筛选的方法
+        IPage<Order> resultPage = orderService.listOrdersByProvider(providerUserId, status, pageParam);
         return ResponseEntity.ok(new APIResponse<>(ResponeCode.SUCCESS, "查询成功", resultPage));
     }
 }
