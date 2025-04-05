@@ -113,12 +113,16 @@ public class OrderController {
         // 获取枚举中对应的描述字符串
         String statusString = orderStatus.getDescription();
 
-        // 注意：请修改数据库中 b_order 表的 status 列长度为足够的长度，例如 varchar(20)
+        // 更新订单状态（Service 方法修改为接收 String 类型的状态）
         orderService.updateOrderStatus(request.getOrderId(), statusString);
 
         // 获取操作人信息
         String jwtToken = token.startsWith("Bearer ") ? token.substring(7) : token;
         String operator = jwtUtil.extractUsername(jwtToken);
+
+        // 处理 remark 字段：如果前端未传，则使用默认值 "状态更新"
+        String remark = (request.getRemark() == null || request.getRemark().trim().isEmpty())
+                ? "状态更新" : request.getRemark();
 
         // 写入状态流记录
         OrderStatusFlow flow = new OrderStatusFlow();
@@ -127,11 +131,12 @@ public class OrderController {
         flow.setStatus(statusString);
         flow.setUpdateTime(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
         flow.setOperator(operator);
-        flow.setRemark("状态更新");
+        flow.setRemark(remark);
         orderStatusFlowService.createFlow(flow);
 
         return ResponseEntity.ok(new APIResponse<>(ResponeCode.SUCCESS, "订单状态更新成功"));
     }
+
 
 
     @Operation(
