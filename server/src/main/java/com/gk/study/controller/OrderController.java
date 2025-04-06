@@ -64,7 +64,7 @@ public class OrderController {
         // order.setUserId(currentUser.getId());
 
         // 设置初始状态和订单时间
-        order.setStatus(OrderStatus.WAITING.getDescription());
+        order.setStatus(String.valueOf(OrderStatus.WAITING.getCode()));
         order.setOrderTime(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
 
         // 调用 service 层创建订单
@@ -110,7 +110,7 @@ public class OrderController {
         // 获取枚举中对应的描述字符串
         String statusString = orderStatus.getDescription();
         // 更新订单状态（Service 方法修改为接收 String 类型的状态）
-        orderService.updateOrderStatus(orderId, statusString);
+        orderService.updateOrderStatus(orderId, status);
 
         // 获取操作人信息
         String jwtToken = token.startsWith("Bearer ") ? token.substring(7) : token;
