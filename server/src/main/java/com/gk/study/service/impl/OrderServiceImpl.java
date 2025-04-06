@@ -83,17 +83,22 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
     }
 
     @Override
-    public IPage<Order> listOrdersByUserId(Long userId, Page<Order> page) {
+    public IPage<Order> listOrdersByUserId(Long userId, String status, Page<Order> page) {
         QueryWrapper<Order> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("user_id", userId);
+        if (status != null && !status.trim().isEmpty()) {
+            queryWrapper.eq("status", status);
+        }
         return orderMapper.selectPage(page, queryWrapper);
     }
 
     @Override
-    public IPage<Order> listOrdersByProvider(Long providerUserId, Page<Order> page) {
+    public IPage<Order> listOrdersByProvider(Long providerUserId, String status, Page<Order> page) {
         QueryWrapper<Order> queryWrapper = new QueryWrapper<>();
-        // 通过子查询方式查找出所有由该服务提供者发布的 Thing 的 id，然后查询对应订单
         queryWrapper.inSql("thing_id", "SELECT id FROM b_thing WHERE user_id = " + providerUserId);
+        if (status != null && !status.trim().isEmpty()) {
+            queryWrapper.eq("status", status);
+        }
         return orderMapper.selectPage(page, queryWrapper);
     }
 }
