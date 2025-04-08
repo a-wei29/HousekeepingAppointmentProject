@@ -1,18 +1,21 @@
 package com.gk.study.controller;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.gk.study.common.APIResponse;
 import com.gk.study.common.ResponeCode;
 import com.gk.study.entity.Comment;
 import com.gk.study.permission.Access;
 import com.gk.study.permission.AccessLevel;
 import com.gk.study.service.CommentService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 import java.util.List;
@@ -47,12 +50,23 @@ public class CommentController {
         return new APIResponse(ResponeCode.SUCCESS, "查询成功", list);
     }
 
-    @RequestMapping(value = "/create", method = RequestMethod.POST)
+    @Operation(
+            summary = "创建评论",
+            description = "前端传入userId、orderId、thingId、评论内容（content）以及评分（rate），创建评论记录，后台设置评论时间。",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "创建成功"),
+                    @ApiResponse(responseCode = "400", description = "参数不合法")
+            }
+    )
+    @PostMapping("/create")
     @Transactional
-    public APIResponse create(Comment comment) throws IOException {
+    public ResponseEntity<APIResponse<?>> createComment(@RequestBody Comment comment) throws IOException {
+        // 设置评论时间为当前系统时间（毫秒级或按照需求格式化为时间字符串）
+        comment.setCommentTime(String.valueOf(System.currentTimeMillis()));
         service.createComment(comment);
-        return new APIResponse(ResponeCode.SUCCESS, "创建成功");
+        return ResponseEntity.ok(new APIResponse<>(ResponeCode.SUCCESS, "创建成功", comment));
     }
+
 
     @Access(level = AccessLevel.ADMIN)
     @RequestMapping(value = "/delete", method = RequestMethod.POST)
@@ -83,5 +97,21 @@ public class CommentController {
         service.updateComment(commentBean);
         return new APIResponse(ResponeCode.SUCCESS, "更新成功");
     }
-
+    @Operation(
+            summary = "分页查询商品评论（按评分排序）",
+            description = "通过thingId获取对应评论，支持传入order参数控制评分（rate）的升序(asc)或降序排序(desc)，并分页返回评论数据。",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "查询成功"),
+                    @ApiResponse(responseCode = "400", description = "参数不合法")
+            }
+    )
+    @GetMapping("/listThingCommentsByRating")
+    public ResponseEntity<APIResponse<?>> listThingCommentsByRating(
+            @RequestParam String thingId,
+            @RequestParam(defaultValue = "desc") String order,
+            @RequestParam(defaultValue = "1") Integer pageNo,
+            @RequestParam(defaultValue = "10") Integer pageSize) {
+        Page<Comment> page = service.getThingCommentListByRating(thingId, order, pageNo, pageSize);
+        return ResponseEntity.ok(new APIResponse<>(ResponeCode.SUCCESS, "查询成功", page));
+    }
 }

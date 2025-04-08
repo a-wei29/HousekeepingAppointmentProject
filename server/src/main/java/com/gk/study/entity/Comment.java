@@ -30,6 +30,30 @@ public class Comment implements Serializable {
     @TableField(exist = false)
     public String cover; // 封面
 
+    // 新增字段：订单ID
+    @TableField
+    public String orderId;
+
+    // 新增字段：评分
+    @TableField
+    public String rate;
+
+    public String getOrderId() {
+        return orderId;
+    }
+
+    public void setOrderId(String orderId) {
+        this.orderId = orderId;
+    }
+
+    public String getRate() {
+        return rate;
+    }
+
+    public void setRate(String rate) {
+        this.rate = rate;
+    }
+
     public String getContent() {
         return content;
     }
