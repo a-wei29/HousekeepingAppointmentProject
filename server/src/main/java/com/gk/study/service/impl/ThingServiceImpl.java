@@ -210,8 +210,8 @@ public class ThingServiceImpl extends ServiceImpl<ThingMapper, Thing> implements
     @Override
     public void updateThing(Thing thing) {
 
-        // 更新tag
-        setThingTags(thing);
+//        // 更新tag
+//        setThingTags(thing);
 
         mapper.updateById(thing);
     }

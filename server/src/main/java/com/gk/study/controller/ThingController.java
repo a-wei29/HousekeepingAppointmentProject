@@ -332,17 +332,26 @@ public class ThingController {
     @Access(level = AccessLevel.ADMIN)
     @PostMapping("/update")
     @Transactional
-    public ResponseEntity<APIResponse<?>> update(@Parameter(description = "更新的家政服务信息", required = true) @ModelAttribute Thing thing) throws IOException {
+    public ResponseEntity<APIResponse<?>> update(
+            @Parameter(description = "更新的家政服务信息", required = true)
+            @RequestBody Thing thing) throws IOException {
+
         logger.info("Updating thing: {}", thing);
+
+        // 调用公共校验方法
+        ResponseEntity<APIResponse<?>> validationResponse = validateThing(thing);
+        if (validationResponse != null) {
+            return validationResponse;
+        }
+
+        // 处理封面图片上传，如有上传则更新cover字段
         String url = saveThing(thing);
         if (!StringUtils.isEmpty(url)) {
             thing.setCover(url);
         }
 
         thingService.updateThing(thing);
-        return ResponseEntity.ok(
-                new APIResponse<>(ResponeCode.SUCCESS, "更新成功")
-        );
+        return ResponseEntity.ok(new APIResponse<>(ResponeCode.SUCCESS, "更新成功"));
     }
 
     /**
@@ -501,4 +510,80 @@ public class ThingController {
                 new APIResponse<>(ResponeCode.SUCCESS, "查询成功", resultPage)
         );
     }
+
+
+    /**
+     * 公共的家政服务信息校验方法。
+     * 如校验失败，返回封装了错误信息的 ResponseEntity，
+     * 校验通过则返回 null。
+     */
+    private ResponseEntity<APIResponse<?>> validateThing(Thing thing) {
+        // 检查用户权限：仅服务提供者可更新家政服务
+        User currentUser = userService.getUserDetail(String.valueOf(thing.getUserId()));
+        if (currentUser == null || currentUser.getRole() == UserRole.NORMAL_USER.getCode()) {
+            return ResponseEntity.ok(new APIResponse<>(ResponeCode.FAIL, "权限不足，只有服务提供者才能发布家政服务"));
+        }
+
+        // 1. 标题不能为空且必须包含汉字或英文字符
+        if (thing.getTitle() == null || thing.getTitle().trim().isEmpty() ||
+                !thing.getTitle().matches(".*[a-zA-Z\u4e00-\u9fa5]+.*")) {
+            return ResponseEntity.ok(new APIResponse<>(ResponeCode.FAIL, "标题不能为空且必须包含汉字或英文字符"));
+        }
+
+        // 2. 价格必须为正数
+        if (thing.getPrice() == null || thing.getPrice().compareTo(BigDecimal.ZERO) <= 0) {
+            return ResponseEntity.ok(new APIResponse<>(ResponeCode.FAIL, "价格必须为正数"));
+        }
+
+        // 3. 分类ID校验
+        if (thing.getClassificationId() == null ||
+                !HousekeepingServiceCategory.isValid(thing.getClassificationId().intValue())) {
+            return ResponseEntity.ok(new APIResponse<>(ResponeCode.FAIL, "无效的分类ID"));
+        }
+
+        // 4. 手机号码校验：不能为空且全部为数字
+        if (thing.getMobile() == null || thing.getMobile().trim().isEmpty() ||
+                !thing.getMobile().matches("^[0-9]+$")) {
+            return ResponseEntity.ok(new APIResponse<>(ResponeCode.FAIL, "手机号码不能为空且必须全部为数字"));
+        }
+
+        // 5. 年龄校验：不能为空且必须为正整数
+        if (thing.getAge() == null || thing.getAge().trim().isEmpty() ||
+                !thing.getAge().matches("^[1-9][0-9]*$")) {
+            return ResponseEntity.ok(new APIResponse<>(ResponeCode.FAIL, "年龄不能为空且必须为正整数"));
+        }
+
+        // 6. 性别校验：必须为 "男" 或 "女"
+        if (thing.getSex() == null || !(thing.getSex().equals("男") || thing.getSex().equals("女"))) {
+            return ResponseEntity.ok(new APIResponse<>(ResponeCode.FAIL, "性别必须为'男'或'女'"));
+        }
+
+        // 7. 服务地址校验
+        if (thing.getLocation() == null || thing.getLocation().trim().isEmpty()) {
+            return ResponseEntity.ok(new APIResponse<>(ResponeCode.FAIL, "服务地址(location)不能为空"));
+        }
+
+        // 8. Latitude 校验：不能为空且为正数
+        if (thing.getLatitude() == null || thing.getLatitude() <= 0) {
+            return ResponseEntity.ok(new APIResponse<>(ResponeCode.FAIL, "Latitude不能为空且必须为正数"));
+        }
+
+        // 9. Longitude 校验：不能为空且为正数
+        if (thing.getLongitude() == null || thing.getLongitude() <= 0) {
+            return ResponseEntity.ok(new APIResponse<>(ResponeCode.FAIL, "Longitude不能为空且必须为正数"));
+        }
+
+        // 10. 发布服务的用户ID不能为空，且用户必须存在
+        if (thing.getUserId() == null) {
+            return ResponseEntity.ok(new APIResponse<>(ResponeCode.FAIL, "发布服务的用户ID不能为空"));
+        }
+        User publisher = userService.getUserDetail(thing.getUserId().toString());
+        if (publisher == null) {
+            return ResponseEntity.ok(new APIResponse<>(ResponeCode.FAIL, "发布服务的用户不存在"));
+        }
+
+        // 校验通过，返回 null
+        return null;
+    }
+
 }
