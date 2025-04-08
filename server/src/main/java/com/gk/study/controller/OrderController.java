@@ -6,6 +6,7 @@ import com.gk.study.common.APIResponse;
 import com.gk.study.common.ResponeCode;
 import com.gk.study.entity.Order;
 import com.gk.study.entity.OrderStatusFlow;
+import com.gk.study.entity.User;
 import com.gk.study.enums.OrderStatus;
 import com.gk.study.jwt.JwtUtil;
 import com.gk.study.permission.Access;
@@ -13,6 +14,7 @@ import com.gk.study.permission.AccessLevel;
 import com.gk.study.requestEntity.UpdateOrderStatusRequest;
 import com.gk.study.service.OrderService;
 import com.gk.study.service.OrderStatusFlowService;
+import com.gk.study.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -43,6 +45,9 @@ public class OrderController {
     private OrderStatusFlowService orderStatusFlowService;
 
     @Autowired
+    private UserService userService;
+
+    @Autowired
     private JwtUtil jwtUtil;
 
     @Operation(
@@ -62,7 +67,8 @@ public class OrderController {
         String jwtToken = token.startsWith("Bearer ") ? token.substring(7) : token;
         String username = jwtUtil.extractUsername(jwtToken);
         // 此处可调用用户服务获取用户信息，进而设置 order.userId
-        // order.setUserId(currentUser.getId());
+        User user = userService.getUserByUserName(username);
+        order.setUserId(String.valueOf(user.getId()));
 
         // 设置初始状态和订单时间
         order.setStatus(String.valueOf(OrderStatus.WAITING.getCode()));
