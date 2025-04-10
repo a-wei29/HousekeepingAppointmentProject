@@ -4,23 +4,22 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.gk.study.common.APIResponse;
 import com.gk.study.common.ResponeCode;
-import com.gk.study.entity.Order;
-import com.gk.study.entity.OrderStatusFlow;
-import com.gk.study.entity.User;
+import com.gk.study.entity.*;
+import com.gk.study.entity.dto.OrderDetailDTO;
+import com.gk.study.enums.HousekeepingServiceCategory;
 import com.gk.study.enums.OrderStatus;
 import com.gk.study.jwt.JwtUtil;
 import com.gk.study.permission.Access;
 import com.gk.study.permission.AccessLevel;
 import com.gk.study.requestEntity.UpdateOrderStatusRequest;
-import com.gk.study.service.OrderService;
-import com.gk.study.service.OrderStatusFlowService;
-import com.gk.study.service.UserService;
+import com.gk.study.service.*;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,6 +29,7 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/order")
@@ -40,6 +40,11 @@ public class OrderController {
     @Autowired
     private OrderService orderService;
 
+    @Autowired
+    private ThingService thingService;
+
+    @Autowired
+    ServiceProviderService serviceProviderService;
 
     @Autowired
     private OrderStatusFlowService orderStatusFlowService;
@@ -169,10 +174,10 @@ public class OrderController {
      */
     @Operation(
             summary = "查询订单详情",
-            description = "根据订单ID获取订单详细信息",
+            description = "根据订单ID获取订单详细信息，并返回关联的家政服务信息（排除重复字段）",
             responses = {
-                    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "查询成功"),
-                    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "订单不存在")
+                    @ApiResponse(responseCode = "200", description = "查询成功"),
+                    @ApiResponse(responseCode = "404", description = "订单不存在")
             }
     )
     @GetMapping("/detail")
@@ -182,7 +187,9 @@ public class OrderController {
         if(order == null){
             return ResponseEntity.ok(new APIResponse<>(ResponeCode.FAIL, "订单不存在"));
         }
-        return ResponseEntity.ok(new APIResponse<>(ResponeCode.SUCCESS, "查询成功", order));
+        // 合并订单和家政服务信息
+        OrderDetailDTO dto = mergeOrderWithThing(order);
+        return ResponseEntity.ok(new APIResponse<>(ResponeCode.SUCCESS, "查询成功", dto));
     }
 
     /**
@@ -207,7 +214,7 @@ public class OrderController {
 
     @Operation(
             summary = "查询用户订单",
-            description = "根据用户ID查询该用户下单的所有订单，并支持分页查询。可选的筛选条件 status 表示订单状态，若传入，则只返回状态匹配的订单。"
+            description = "根据用户ID查询该用户下单的所有订单，并支持分页查询。可选的筛选条件 status 表示订单状态，若传入，则只返回状态匹配的订单。返回结果中会合并关联的家政服务信息（排除重复字段）。"
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "查询成功"),
@@ -221,14 +228,24 @@ public class OrderController {
             @Parameter(description = "每页记录数", required = false) @RequestParam(defaultValue = "10") int size) {
 
         Page<Order> pageParam = new Page<>(page, size);
-        // 调用 service 层新增的带状态筛选的方法
+        // service 层返回的分页结果包含 Order
         IPage<Order> resultPage = orderService.listOrdersByUserId(userId, status, pageParam);
-        return ResponseEntity.ok(new APIResponse<>(ResponeCode.SUCCESS, "查询成功", resultPage));
+
+        // 针对每个 Order，合并 Thing 信息生成 DTO 集合
+        List<OrderDetailDTO> dtoList = resultPage.getRecords().stream()
+                .map(order -> mergeOrderWithThing(order))
+                .collect(Collectors.toList());
+
+        // 构造新的分页对象，保留原分页参数
+        Page<OrderDetailDTO> dtoPage = new Page<>(resultPage.getCurrent(), resultPage.getSize(), resultPage.getTotal());
+        dtoPage.setRecords(dtoList);
+
+        return ResponseEntity.ok(new APIResponse<>(ResponeCode.SUCCESS, "查询成功", dtoPage));
     }
 
     @Operation(
             summary = "查询服务提供者订单",
-            description = "根据服务提供者ID查询其发布的服务被下的订单，并支持分页查询。可选的筛选条件 status 表示订单状态，若传入，则只返回状态匹配的订单。"
+            description = "根据服务提供者ID查询其发布的服务被下的订单，并支持分页查询。可选的筛选条件 status 表示订单状态，若传入，则只返回状态匹配的订单。返回结果中合并了关联的家政服务信息（排除重复字段）。"
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "查询成功"),
@@ -242,8 +259,58 @@ public class OrderController {
             @Parameter(description = "每页记录数", required = false) @RequestParam(defaultValue = "10") int size) {
 
         Page<Order> pageParam = new Page<>(page, size);
-        // 调用 service 层新增的带状态筛选的方法
         IPage<Order> resultPage = orderService.listOrdersByProvider(providerUserId, status, pageParam);
-        return ResponseEntity.ok(new APIResponse<>(ResponeCode.SUCCESS, "查询成功", resultPage));
+
+        List<OrderDetailDTO> dtoList = resultPage.getRecords().stream()
+                .map(order -> mergeOrderWithThing(order))
+                .collect(Collectors.toList());
+
+        Page<OrderDetailDTO> dtoPage = new Page<>(resultPage.getCurrent(), resultPage.getSize(), resultPage.getTotal());
+        dtoPage.setRecords(dtoList);
+
+        return ResponseEntity.ok(new APIResponse<>(ResponeCode.SUCCESS, "查询成功", dtoPage));
+    }
+
+
+    /**
+     * 合并 Order 与关联的 Thing 信息，构造 OrderDetailDTO 对象。
+     * 注意：如果两个对象中存在相同字段（例如 title、cover、price 等），则以 Order 中的值为准，Thing 中的重复字段将被忽略。
+     */
+    private OrderDetailDTO mergeOrderWithThing(Order order) {
+        OrderDetailDTO dto = new OrderDetailDTO();
+        // 拷贝 Order 所有字段
+        BeanUtils.copyProperties(order, dto);
+
+        // 调用 ThingService 获取关联的家政服务信息（注意：这里需要注入 ThingService）
+        Thing thing = thingService.getThingById(order.getThingId());
+        if(thing != null){
+            // 仅拷贝 Order 中未定义的字段，即那些在 Thing 中但 Order 中没有的字段
+
+            ServiceProvider provider = serviceProviderService.getServiceProviderByUserId(thing.getUserId());
+            HousekeepingServiceCategory category = HousekeepingServiceCategory.getByCode(thing.getClassificationId().intValue());
+            if (category != null) {
+                dto.setClassificationName(category.getDescription());
+            }
+            dto.setDescription(thing.getDescription());
+            dto.setThingCreateTime(thing.getCreateTime());
+            dto.setScore(thing.getScore());
+            dto.setMobile(thing.getMobile());
+            dto.setAge(thing.getAge());
+            dto.setSex(thing.getSex());
+            dto.setLocation(thing.getLocation());
+            dto.setPv(thing.getPv());
+            dto.setRecommendCount(thing.getRecommendCount());
+            dto.setWishCount(thing.getWishCount());
+            dto.setCollectCount(thing.getCollectCount());
+            dto.setClassificationId(thing.getClassificationId());
+            dto.setLatitude(thing.getLatitude());
+            dto.setLongitude(thing.getLongitude());
+            dto.setTags(thing.getTags());
+            dto.setPublisherName(provider.getName());
+            dto.setCollected(thing.getCollected());
+            dto.setTitle(thing.getTitle());
+            dto.setPrice(String.valueOf(thing.getPrice()));
+        }
+        return dto;
     }
 }
