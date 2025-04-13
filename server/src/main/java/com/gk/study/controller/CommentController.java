@@ -68,24 +68,39 @@ public class CommentController {
     }
 
 
-    @Access(level = AccessLevel.ADMIN)
+    // 删除评论接口（批量删除，根据传入的 ids，多个 id 用逗号分隔）
+    @Operation(
+            summary = "删除评论",
+            description = "根据传入的评论 id 列表进行批量删除操作,只传一个也可以。",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "删除成功"),
+                    @ApiResponse(responseCode = "400", description = "参数不合法")
+            }
+    )
     @RequestMapping(value = "/delete", method = RequestMethod.POST)
-    public APIResponse delete(String ids){
-        System.out.println("ids===" + ids);
-        // 批量删除
+    public ResponseEntity<APIResponse<?>> delete(@RequestParam String ids) {
+        // 按逗号分隔的 id 进行循环删除
         String[] arr = ids.split(",");
         for (String id : arr) {
             service.deleteComment(id);
         }
-        return new APIResponse(ResponeCode.SUCCESS, "删除成功");
+        return ResponseEntity.ok(new APIResponse(ResponeCode.SUCCESS, "删除成功"));
     }
 
-    @Access(level = AccessLevel.ADMIN)
+    // 更新评论接口
+    @Operation(
+            summary = "更新评论",
+            description = "根据传入的评论对象，更新对应的评论记录。",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "更新成功"),
+                    @ApiResponse(responseCode = "400", description = "参数不合法")
+            }
+    )
     @RequestMapping(value = "/update", method = RequestMethod.POST)
     @Transactional
-    public APIResponse update(Comment comment) throws IOException {
+    public ResponseEntity<APIResponse<?>> update(@RequestBody Comment comment) throws IOException {
         service.updateComment(comment);
-        return new APIResponse(ResponeCode.SUCCESS, "更新成功");
+        return ResponseEntity.ok(new APIResponse(ResponeCode.SUCCESS, "更新成功"));
     }
 
     @RequestMapping(value = "/like", method = RequestMethod.POST)
