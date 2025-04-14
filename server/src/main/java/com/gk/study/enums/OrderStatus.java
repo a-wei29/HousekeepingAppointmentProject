@@ -3,12 +3,12 @@ package com.gk.study.enums;
 
 public enum OrderStatus {
     WAITING(0, "待接单"),
-    ACCEPTED(1, "已接单"),
+    WAIT_SERVICE(1, "待服务"),
     IN_PROGRESS(2, "执行中"),
-    SERVICE_COMPLETED(3, "服务完成"),
-    USER_REVIEW(4, "用户审核"),
-    USER_PAYMENT(5, "用户付款"),
-    ORDER_FINISHED(6, "订单结束");
+    WAIT_AUDIT(3, "待审核"),
+    WAIT_PAYMENT(4, "待付款"),
+    WAIT_FOR_COMMENT(5, "待评论"),
+    ORDER_FINISHED(6, "已完成");
 
     private final int code;
     private final String description;

@@ -55,9 +55,9 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
     }
 
     @Override
-    public Page<Comment> getThingCommentListByRating(String thingId, String order, Integer pageNo, Integer pageSize) {
+    public Page<Comment> getThingCommentListByRating(String orderId, String order, Integer pageNo, Integer pageSize) {
         QueryWrapper<Comment> wrapper = new QueryWrapper<>();
-        wrapper.eq("thing_id", thingId);
+        wrapper.eq("order_id", orderId);
         // 按评分（rate）排序：根据order参数选择升序或降序
         if ("asc".equalsIgnoreCase(order)) {
             wrapper.orderByAsc("rate");

@@ -122,11 +122,11 @@ public class CommentController {
     )
     @GetMapping("/listThingCommentsByRating")
     public ResponseEntity<APIResponse<?>> listThingCommentsByRating(
-            @RequestParam String thingId,
+            @RequestParam String orderId,
             @RequestParam(defaultValue = "desc") String order,
             @RequestParam(defaultValue = "1") Integer pageNo,
             @RequestParam(defaultValue = "10") Integer pageSize) {
-        Page<Comment> page = service.getThingCommentListByRating(thingId, order, pageNo, pageSize);
+        Page<Comment> page = service.getThingCommentListByRating(orderId, order, pageNo, pageSize);
         return ResponseEntity.ok(new APIResponse<>(ResponeCode.SUCCESS, "查询成功", page));
     }
 }

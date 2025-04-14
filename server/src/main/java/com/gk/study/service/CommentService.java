@@ -21,12 +21,12 @@ public interface CommentService {
     /**
      * 分页查询指定商品的评论列表，根据评分排序（升序或降序）
      *
-     * @param thingId 商品ID
+     * @param orderId 商品ID
      * @param order 排序方式，asc 为升序，desc 为降序，默认为降序
      * @param pageNo 页码
      * @param pageSize 每页记录数
      * @return 分页后的评论列表
      */
 
-    public Page<Comment> getThingCommentListByRating(String thingId, String order, Integer pageNo, Integer pageSize);
+    public Page<Comment> getThingCommentListByRating(String orderId, String order, Integer pageNo, Integer pageSize);
 }
