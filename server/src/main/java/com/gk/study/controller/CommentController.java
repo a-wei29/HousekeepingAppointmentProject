@@ -5,9 +5,11 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.gk.study.common.APIResponse;
 import com.gk.study.common.ResponeCode;
 import com.gk.study.entity.Comment;
+import com.gk.study.entity.User;
 import com.gk.study.permission.Access;
 import com.gk.study.permission.AccessLevel;
 import com.gk.study.service.CommentService;
+import com.gk.study.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import org.slf4j.Logger;
@@ -28,6 +30,9 @@ public class CommentController {
 
     @Autowired
     CommentService service;
+
+    @Autowired
+    private UserService userService; // 注入 UserService，用于获取用户详情
 
     @RequestMapping(value = "/list", method = RequestMethod.GET)
     public APIResponse list(){
@@ -122,11 +127,21 @@ public class CommentController {
     )
     @GetMapping("/listThingCommentsByRating")
     public ResponseEntity<APIResponse<?>> listThingCommentsByRating(
-            @RequestParam String orderId,
-            @RequestParam(defaultValue = "desc") String order,
+            @RequestParam String thingId,
+            @RequestParam(defaultValue = "desc",required = false) String order,
             @RequestParam(defaultValue = "1") Integer pageNo,
             @RequestParam(defaultValue = "10") Integer pageSize) {
-        Page<Comment> page = service.getThingCommentListByRating(orderId, order, pageNo, pageSize);
+        Page<Comment> page = service.getThingCommentListByRating(thingId, order, pageNo, pageSize);
+
+        // 遍历查询结果，根据comment中的userId调用UserService获取用户详情，并填充username字段
+        if (page.getRecords() != null) {
+            for (Comment comment : page.getRecords()) {
+                User user = userService.getUserDetail(comment.getUserId());
+                if (user != null) {
+                    comment.setUsername(user.getUsername());
+                }
+            }
+        }
         return ResponseEntity.ok(new APIResponse<>(ResponeCode.SUCCESS, "查询成功", page));
     }
 }

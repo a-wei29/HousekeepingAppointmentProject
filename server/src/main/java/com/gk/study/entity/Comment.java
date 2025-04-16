@@ -38,6 +38,7 @@ public class Comment implements Serializable {
     @TableField
     public String rate;
 
+
     public String getOrderId() {
         return orderId;
     }
