@@ -100,10 +100,6 @@ public class UserController {
             // 设置token
             user.setToken(md5Str);
 
-            String avatar = saveAvatar(user);
-            if(!StringUtils.isEmpty(avatar)) {
-                user.avatar = avatar;
-            }
             // 设置角色
             user.setRole(User.NormalUser);
             // 设置状态
@@ -135,9 +131,7 @@ public class UserController {
             user.setCreateTime(String.valueOf(System.currentTimeMillis()));
 
             String avatar = saveAvatar(user);
-            if(!StringUtils.isEmpty(avatar)) {
-                user.avatar = avatar;
-            }
+
             userService.createUser(user);
             return new APIResponse(ResponeCode.SUCCESS, "创建成功");
         }
@@ -163,9 +157,7 @@ public class UserController {
         // update不能修改密码，故置空
         user.setPassword(null);
         String avatar = saveAvatar(user);
-        if(!StringUtils.isEmpty(avatar)) {
-            user.avatar = avatar;
-        }
+
         userService.updateUser(user);
         System.out.println(user);
         return new APIResponse(ResponeCode.SUCCESS, "更新成功");
@@ -183,9 +175,7 @@ public class UserController {
             user.setPassword(null);
             user.setRole(User.NormalUser);
             String avatar = saveAvatar(user);
-            if(!StringUtils.isEmpty(avatar)) {
-                user.avatar = avatar;
-            }
+
             userService.updateUser(user);
             return new APIResponse(ResponeCode.SUCCESS, "更新成功");
         }else {
@@ -371,9 +361,7 @@ public class UserController {
             }
             file.transferTo(destFile);
         }
-        if(!StringUtils.isEmpty(newFileName)) {
-            user.avatar = newFileName;
-        }
+
         return newFileName;
     }
 }

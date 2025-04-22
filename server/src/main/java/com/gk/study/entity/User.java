@@ -42,7 +42,17 @@ public class User implements Serializable {
     @TableField
     public String score;
     @TableField
-    public String avatar;
+    /** 头像数据存入数据库 BLOB 列 */
+    public byte[] avatar;
+
+    public byte[] getAvatar() {
+        return avatar;
+    }
+
+    public void setAvatar(byte[] avatar) {
+        this.avatar = avatar;
+    }
+
     @TableField(exist = false)
     @JsonIgnore
     public MultipartFile avatarFile;
@@ -155,14 +165,6 @@ public class User implements Serializable {
 
     public void setStatus(String status) {
         this.status = status;
-    }
-
-    public String getAvatar() {
-        return avatar;
-    }
-
-    public void setAvatar(String avatar) {
-        this.avatar = avatar;
     }
 
     public String getScore() {

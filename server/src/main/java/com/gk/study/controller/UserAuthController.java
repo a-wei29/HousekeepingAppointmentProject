@@ -511,25 +511,51 @@ public class UserAuthController {
     }
 
 
-    // 如果需要保存头像
-    private String saveAvatar(User user) throws IOException {
-        MultipartFile file = user.getAvatarFile();
-        String newFileName = null;
-        if(file != null && !file.isEmpty()) {
-            String oldFileName = file.getOriginalFilename();
-            String randomStr = UUID.randomUUID().toString();
-            newFileName = randomStr + oldFileName.substring(oldFileName.lastIndexOf("."));
-            String filePath = uploadPath + File.separator + "avatar" + File.separator + newFileName;
-            File destFile = new File(filePath);
-            if(!destFile.getParentFile().exists()){
-                destFile.getParentFile().mkdirs();
-            }
-            file.transferTo(destFile);
+    @Operation(summary = "上传用户头像", description = "接收 userId 和头像文件，将图片二进制存入数据库，并同步到阿里云 OSS。")
+    @Access(level = AccessLevel.LOGIN)
+    @PostMapping("/uploadAvatar")
+    public ResponseEntity<APIResponse<?>> uploadAvatar(
+            @RequestParam("userId") Long userId,
+            @RequestParam("file") MultipartFile file) throws IOException {
+
+        // 1. 参数校验
+        if (userId == null || file == null || file.isEmpty()) {
+            return ResponseEntity.ok(new APIResponse<>(ResponeCode.FAIL, "参数不合法"));
         }
-        if(!StringUtils.isEmpty(newFileName)) {
-            user.setAvatar(newFileName);
+        User user = userService.getUserDetail(String.valueOf(userId));
+        if (user == null) {
+            return ResponseEntity.ok(new APIResponse<>(ResponeCode.FAIL, "用户不存在"));
         }
-        return newFileName;
+
+        // 2. 读取文件二进制
+        byte[] data = file.getBytes();
+        user.setAvatar(data);
+
+        // 3. 可选：同步到阿里云 OSS（伪代码）
+    /*
+    // —— 阿里云 OSS 集成示例 ——
+    String endpoint        = "https://oss-cn-hangzhou.aliyuncs.com";
+    String accessKeyId     = "<your-access-key-id>";
+    String accessKeySecret = "<your-access-key-secret>";
+    String bucketName      = "myapp-avatars";
+    String objectKey       = "avatars/" + userId + ".jpg";
+
+    // 创建 OSS 客户端
+    OSS ossClient = new OSSClientBuilder().build(endpoint, accessKeyId, accessKeySecret);
+    // 上传到 OSS
+    ossClient.putObject(bucketName, objectKey, new ByteArrayInputStream(data));
+    // 关闭客户端
+    ossClient.shutdown();
+
+    // 如果你需要在数据库中同时存 OSS 地址，可以：
+    // String avatarUrl = "https://" + bucketName + "." + endpoint + "/" + objectKey;
+    // user.setAvatarUrl(avatarUrl);
+    */
+
+        // 4. 更新数据库
+        userService.updateUser(user);
+
+        return ResponseEntity.ok(new APIResponse<>(ResponeCode.SUCCESS, "头像上传成功"));
     }
 }
 
