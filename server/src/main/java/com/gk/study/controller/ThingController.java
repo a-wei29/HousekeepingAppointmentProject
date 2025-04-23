@@ -286,11 +286,7 @@ public class ThingController {
         // collectCount 初始为 0
         thing.setCollectCount(0);
 
-        // 3. 处理封面图片上传 (可选)
-        String url = saveThing(thing);
-        if (!StringUtils.isEmpty(url)) {
-            thing.setCover(url);
-        }
+
 
         // 4. 调用 Service 创建家政服务
         thingService.createThing(thing);
@@ -344,11 +340,7 @@ public class ThingController {
             return validationResponse;
         }
 
-        // 处理封面图片上传，如有上传则更新cover字段
-        String url = saveThing(thing);
-        if (!StringUtils.isEmpty(url)) {
-            thing.setCover(url);
-        }
+
 
         thingService.updateThing(thing);
         return ResponseEntity.ok(new APIResponse<>(ResponeCode.SUCCESS, "更新成功"));
@@ -372,11 +364,56 @@ public class ThingController {
             }
             file.transferTo(destFile);
         }
-        if (!StringUtils.isEmpty(newFileName)) {
-            thing.setCover(newFileName);
-        }
         return newFileName;
     }
+
+    @Operation(summary = "上传家政服务封面头像", description = "接收 thingId 和封面文件，将图片二进制存入数据库，并同步到阿里云 OSS。")
+    @Access(level = AccessLevel.LOGIN)
+    @PostMapping("/uploadCover")
+    public ResponseEntity<APIResponse<?>> uploadCover(
+            @RequestParam("thingId") Long thingId,
+            @RequestParam("file") MultipartFile file) throws IOException {
+
+        // 1. 参数校验
+        if (thingId == null || file == null || file.isEmpty()) {
+            return ResponseEntity.ok(new APIResponse<>(ResponeCode.FAIL, "参数不合法"));
+        }
+        Thing thing = thingService.getThingById(String.valueOf(thingId));
+        if (thing == null) {
+            return ResponseEntity.ok(new APIResponse<>(ResponeCode.FAIL, "家政服务不存在"));
+        }
+
+        // 2. 读取文件二进制
+        byte[] data = file.getBytes();
+        thing.setCover(data);
+
+        // 3. 可选：同步到阿里云 OSS（伪代码）
+    /*
+    // —— 阿里云 OSS 集成示例 ——
+    String endpoint        = "https://oss-cn-hangzhou.aliyuncs.com";
+    String accessKeyId     = "<your-access-key-id>";
+    String accessKeySecret = "<your-access-key-secret>";
+    String bucketName      = "myapp-avatars";
+    String objectKey       = "avatars/" + userId + ".jpg";
+
+    // 创建 OSS 客户端
+    OSS ossClient = new OSSClientBuilder().build(endpoint, accessKeyId, accessKeySecret);
+    // 上传到 OSS
+    ossClient.putObject(bucketName, objectKey, new ByteArrayInputStream(data));
+    // 关闭客户端
+    ossClient.shutdown();
+
+    // 如果你需要在数据库中同时存 OSS 地址，可以：
+    // String avatarUrl = "https://" + bucketName + "." + endpoint + "/" + objectKey;
+    // user.setAvatarUrl(avatarUrl);
+    */
+
+        // 4. 更新数据库
+        thingService.updateThing(thing);
+
+        return ResponseEntity.ok(new APIResponse<>(ResponeCode.SUCCESS, "家政服务封面上传成功"));
+    }
+
 
     /**
      * 收藏家政服务

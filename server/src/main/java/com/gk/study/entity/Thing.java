@@ -19,7 +19,7 @@ public class Thing implements Serializable {
     @TableField
     public String title;
     @TableField
-    public String cover;
+    public byte[] cover;
     @TableField
     public String description;
     @TableField
@@ -80,6 +80,14 @@ public class Thing implements Serializable {
 
     public void setPublisherName(String publisherName) {
         this.publisherName = publisherName;
+    }
+
+    public byte[] getCover() {
+        return cover;
+    }
+
+    public void setCover(byte[] cover) {
+        this.cover = cover;
     }
 
     public Integer getCollected() {
@@ -178,13 +186,7 @@ public class Thing implements Serializable {
         this.title = title;
     }
 
-    public String getCover() {
-        return cover;
-    }
 
-    public void setCover(String cover) {
-        this.cover = cover;
-    }
 
     public String getDescription() {
         return description;

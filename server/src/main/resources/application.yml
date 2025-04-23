@@ -68,9 +68,14 @@ spring:
 
   servlet:
     multipart:
-      max-request-size: 10MB  # 上传文件总的最大值 默认10MB
-      max-file-size: 1MB #单个文件最大值 默认1MB
-      location: ${BASE_LOCATION}\server\upload\tmp # 临时上传目录
+      # 上传文件总的最大值（默认 10MB，无需改动也可根据需要再调大）
+      max-request-size: 10MB
+      # 单个文件最大值（当前是 1MB，如果你希望上传更大的图片，也可以调大这里）
+      max-file-size: 10MB
+      # 调大“内存阈值”：小于等于 10MB 的文件都在内存，不写磁盘
+      file-size-threshold: 10MB
+      # 只有超过阈值的，才会往磁盘写临时文件
+      #location: ${BASE_LOCATION}\server\upload\tmp
       enabled: true
 
 
