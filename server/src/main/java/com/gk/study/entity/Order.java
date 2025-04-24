@@ -49,7 +49,7 @@ public class Order implements Serializable {
     @TableField(exist = false)
     public String title; // 商品名称
     @TableField(exist = false)
-    public String cover; // 商品封面
+    public byte[] cover; // 商品封面
     @TableField(exist = false)
     public String price; // 商品价格
 
@@ -181,11 +181,11 @@ public class Order implements Serializable {
         this.title = title;
     }
 
-    public String getCover() {
+    public byte[] getCover() {
         return cover;
     }
 
-    public void setCover(String cover) {
+    public void setCover(byte[] cover) {
         this.cover = cover;
     }
 
