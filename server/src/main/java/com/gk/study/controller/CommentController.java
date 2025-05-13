@@ -20,6 +20,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 @RestController
@@ -66,10 +68,18 @@ public class CommentController {
     @PostMapping("/create")
     @Transactional
     public ResponseEntity<APIResponse<?>> createComment(@RequestBody Comment comment) throws IOException {
-        // 设置评论时间为当前系统时间（毫秒级或按照需求格式化为时间字符串）
-        comment.setCommentTime(String.valueOf(System.currentTimeMillis()));
-        service.createComment(comment);
-        return ResponseEntity.ok(new APIResponse<>(ResponeCode.SUCCESS, "创建成功", comment));
+        // 1. 设置评论时间（这里改为格式化到秒）
+        comment.setCommentTime(
+                LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
+        );
+
+        // 2. 委托给 Service：保存评论 + 更新评分
+        service.createCommentAndUpdateScores(comment);
+
+        // 3. 返回新建的评论对象（含评分等字段）
+        return ResponseEntity.ok(
+                new APIResponse<>(ResponeCode.SUCCESS, "创建成功", comment)
+        );
     }
 
 

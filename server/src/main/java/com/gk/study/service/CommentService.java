@@ -29,4 +29,6 @@ public interface CommentService {
      */
 
     public Page<Comment> getThingCommentListByRating(String thingId, String order, Integer pageNo, Integer pageSize);
+
+    public void createCommentAndUpdateScores(Comment comment);
 }
