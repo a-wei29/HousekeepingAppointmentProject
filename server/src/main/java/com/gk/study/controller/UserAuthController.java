@@ -406,7 +406,7 @@ public class UserAuthController {
     @Access(level = AccessLevel.LOGIN)
     @Operation(
             summary = "更新用户信息",
-            description = "普通用户更新自己的个人信息，不能修改用户名和密码。",
+            description = "用户更新自己的个人信息，不允许修改密码。",
             responses = {
                     @ApiResponse(responseCode = "200", description = "更新成功"),
                     @ApiResponse(responseCode = "400", description = "更新失败")
@@ -414,28 +414,39 @@ public class UserAuthController {
     )
     @PostMapping("/updateUserInfo")
     @Transactional
-    public ResponseEntity<APIResponse<?>> updateUserInfo(@Parameter(description = "用户信息", required = true) @RequestBody User user) throws IOException {
-        User tmpUser = userService.getUserDetail(String.valueOf(user.getId()));
-        if(tmpUser == null){
+    public ResponseEntity<APIResponse<?>> updateUserInfo(
+            @Parameter(description = "用户信息", required = true)
+            @RequestBody User user) throws IOException {
+
+        // 1. 查询原始用户
+        User existing = userService.getUserDetail(String.valueOf(user.getId()));
+        if (existing == null) {
             return ResponseEntity.ok(
                     new APIResponse<>(ResponeCode.FAIL, "用户不存在")
             );
         }
-        if(tmpUser.getRole() == User.NormalUser){
-            user.setUsername(null);
-            user.setPassword(null);
-            user.setRole(User.NormalUser);
-            // 处理头像
-            // ...
-            userService.updateUser(user);
-            return ResponseEntity.ok(
-                    new APIResponse<>(ResponeCode.SUCCESS, "更新成功")
-            );
+
+        // 2. 保留原密码，不允许更新
+        user.setPassword(existing.getPassword());
+
+        // 3. 保留原角色，不作修改
+        user.setRole(existing.getRole());
+
+        // 4. 处理头像文件上传（如果前端传了 avatarFile）
+        if (user.getAvatarFile() != null && !user.getAvatarFile().isEmpty()) {
+            byte[] avatarBytes = user.getAvatarFile().getBytes();
+            user.setAvatar(avatarBytes);
         } else {
-            return ResponseEntity.ok(
-                    new APIResponse<>(ResponeCode.FAIL, "非法操作")
-            );
+            // 如果没有传新头像，则保留老头像
+            user.setAvatar(existing.getAvatar());
         }
+
+        // 5. 调用 Service 执行更新
+        userService.updateUser(user);
+
+        return ResponseEntity.ok(
+                new APIResponse<>(ResponeCode.SUCCESS, "更新成功")
+        );
     }
 
     @Access(level = AccessLevel.LOGIN)
@@ -458,7 +469,6 @@ public class UserAuthController {
                     new APIResponse<>(ResponeCode.FAIL, "用户不存在")
             );
         }
-        if(user.getRole() == User.NormalUser) {
             // 校验旧密码
             if(!passwordEncoder.matches(password, user.getPassword())) {
                 return ResponseEntity.ok(
@@ -472,11 +482,6 @@ public class UserAuthController {
             return ResponseEntity.ok(
                     new APIResponse<>(ResponeCode.SUCCESS, "更新成功")
             );
-        } else {
-            return ResponseEntity.ok(
-                    new APIResponse<>(ResponeCode.FAIL, "非法操作")
-            );
-        }
     }
 
     @Operation(
@@ -531,26 +536,26 @@ public class UserAuthController {
         byte[] data = file.getBytes();
         user.setAvatar(data);
 
-        // 3. 可选：同步到阿里云 OSS（伪代码）
-    /*
-    // —— 阿里云 OSS 集成示例 ——
-    String endpoint        = "https://oss-cn-hangzhou.aliyuncs.com";
-    String accessKeyId     = "<your-access-key-id>";
-    String accessKeySecret = "<your-access-key-secret>";
-    String bucketName      = "myapp-avatars";
-    String objectKey       = "avatars/" + userId + ".jpg";
-
-    // 创建 OSS 客户端
-    OSS ossClient = new OSSClientBuilder().build(endpoint, accessKeyId, accessKeySecret);
-    // 上传到 OSS
-    ossClient.putObject(bucketName, objectKey, new ByteArrayInputStream(data));
-    // 关闭客户端
-    ossClient.shutdown();
-
-    // 如果你需要在数据库中同时存 OSS 地址，可以：
-    // String avatarUrl = "https://" + bucketName + "." + endpoint + "/" + objectKey;
-    // user.setAvatarUrl(avatarUrl);
-    */
+//        // 3. 可选：同步到阿里云 OSS（伪代码）
+//    /*
+//    // —— 阿里云 OSS 集成示例 ——
+//    String endpoint        = "https://oss-cn-hangzhou.aliyuncs.com";
+//    String accessKeyId     = "<your-access-key-id>";
+//    String accessKeySecret = "<your-access-key-secret>";
+//    String bucketName      = "myapp-avatars";
+//    String objectKey       = "avatars/" + userId + ".jpg";
+//
+//    // 创建 OSS 客户端
+//    OSS ossClient = new OSSClientBuilder().build(endpoint, accessKeyId, accessKeySecret);
+//    // 上传到 OSS
+//    ossClient.putObject(bucketName, objectKey, new ByteArrayInputStream(data));
+//    // 关闭客户端
+//    ossClient.shutdown();
+//
+//    // 如果你需要在数据库中同时存 OSS 地址，可以：
+//    // String avatarUrl = "https://" + bucketName + "." + endpoint + "/" + objectKey;
+//    // user.setAvatarUrl(avatarUrl);
+//    */
 
         // 4. 更新数据库
         userService.updateUser(user);
