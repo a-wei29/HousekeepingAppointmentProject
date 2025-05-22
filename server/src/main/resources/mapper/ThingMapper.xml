@@ -10,13 +10,13 @@
     <select id="findAllActive" resultType="com.gk.study.entity.Thing">
         SELECT *
         FROM b_thing
-        WHERE status = '1'
+        WHERE status = '0'
     </select>
 
     <select id="findTopHot" resultType="com.gk.study.entity.Thing">
         SELECT *
         FROM b_thing
-        WHERE status = '1'
+        WHERE status = '0'
         ORDER BY (pv + recommend_count * 2 + collect_count * 3) DESC
         LIMIT #{limit}
     </select>

@@ -63,6 +63,12 @@ public class MixedRecommendationService {
 
         // 6. 按原集合顺序取前 FINAL_TOPN
         List<Long> resultIds = finalSet.stream().limit(FINAL_TOPN).collect(Collectors.toList());
+
+        // 如果没有任何候选 ID，就直接返回空
+        if (resultIds.isEmpty()) {
+            return Collections.emptyList();
+        }
+
         return thingMapper.findByIds(resultIds);
     }
 

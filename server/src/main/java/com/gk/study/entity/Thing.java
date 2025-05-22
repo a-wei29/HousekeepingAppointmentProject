@@ -80,9 +80,10 @@ public class Thing implements Serializable {
      */
     public double[] getFeatureVector() {
         List<Double> vec = new ArrayList<>();
-        // 1. 分类 one-hot (8)
+        // 1. 分类 one-hot (8)，null 或者不在 1~8 范围内时全填 0
+        int cat = (classificationId == null) ? -1 : classificationId.intValue();
         for (int c = 1; c <= 8; c++) {
-            vec.add(c == classificationId ? 1.0 : 0.0);
+            vec.add(c == cat ? 1.0 : 0.0);
         }
         // 2. 价格桶 one-hot (5 桶示例)
         double p = price.doubleValue();
