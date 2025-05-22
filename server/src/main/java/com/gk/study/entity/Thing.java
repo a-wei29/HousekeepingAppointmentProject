@@ -9,6 +9,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 
 @Data
@@ -72,6 +73,30 @@ public class Thing implements Serializable {
 
     @TableField(exist = false)
     private Integer collected;
+
+    /**
+     * 构造特征向量：
+     * [分类 one-hot(8), 价格桶 one-hot(5), 评分归一化, 热度归一化]
+     */
+    public double[] getFeatureVector() {
+        List<Double> vec = new ArrayList<>();
+        // 1. 分类 one-hot (8)
+        for (int c = 1; c <= 8; c++) {
+            vec.add(c == classificationId ? 1.0 : 0.0);
+        }
+        // 2. 价格桶 one-hot (5 桶示例)
+        double p = price.doubleValue();
+        int bucket = (int) Math.min(4, p / 100); // 0..4
+        for (int i = 0; i < 5; i++) {
+            vec.add(i == bucket ? 1.0 : 0.0);
+        }
+        // 3. 评分归一化 [0,1]
+        vec.add(Double.parseDouble(score) / 5.0);
+        // 4. 热度 = pv + recommendCount*2 + collectCount*3, 归一化假设最大值 10000
+        double heat = Double.parseDouble(pv) + recommendCount * 2 + collectCount * 3;
+        vec.add(Math.min(1.0, heat / 10000.0));
+        return vec.stream().mapToDouble(Double::doubleValue).toArray();
+    }
 
     // 生成对应的 getter/setter
     public String getPublisherName() {

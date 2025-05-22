@@ -7,5 +7,26 @@
         select * from b_thing;
     </select>
 
+    <select id="findAllActive" resultType="com.gk.study.entity.Thing">
+        SELECT *
+        FROM b_thing
+        WHERE status = '1'
+    </select>
 
+    <select id="findTopHot" resultType="com.gk.study.entity.Thing">
+        SELECT *
+        FROM b_thing
+        WHERE status = '1'
+        ORDER BY (pv + recommend_count * 2 + collect_count * 3) DESC
+        LIMIT #{limit}
+    </select>
+
+    <select id="findByIds" resultType="com.gk.study.entity.Thing">
+        SELECT *
+        FROM b_thing
+        WHERE id IN
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </select>
 </mapper>

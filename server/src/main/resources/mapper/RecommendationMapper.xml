@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.gk.study.mapper.RecommendationMapper">
+
+    <delete id="deleteAllItemSimilarity">TRUNCATE TABLE item_similarity</delete>
+
+    <select id="fetchUserThingWeights" resultType="com.gk.study.entity.UserThingScore">
+        <!-- 浏览权重：browse_duration 秒数占比，订单权重固定 -->
+        SELECT user_id,
+        thing_id,
+        SUM(LEAST(CAST(browse_duration AS UNSIGNED),3600)/3600) /* max 1 */
+        + COUNT(DISTINCT o.id)*2 AS weight
+        FROM b_user_thing_history h
+        LEFT JOIN b_order o
+        ON h.user_id = o.user_id AND h.thing_id = o.thing_id
+        GROUP BY user_id, thing_id
+    </select>
+
+    <insert id="batchInsertItemSim">
+        INSERT INTO item_similarity (thing_id, neighbor_id, similarity)
+        VALUES
+        <foreach collection="list" item="sim" separator=",">
+            (#{sim.thingId}, #{sim.neighborId}, #{sim.similarity})
+        </foreach>
+    </insert>
+
+    <select id="findTopNSimilar" resultType="long">
+        SELECT neighbor_id
+        FROM item_similarity
+        WHERE thing_id = #{thingId}
+        ORDER BY similarity DESC
+        LIMIT #{limit}
+    </select>
+</mapper>
