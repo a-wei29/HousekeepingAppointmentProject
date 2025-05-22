@@ -2,10 +2,11 @@ package com.gk.study.mapper;
 
 import com.gk.study.entity.ItemSim;
 import com.gk.study.entity.UserThingScore;
+import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
-
+@Mapper
 public interface RecommendationMapper {
     void deleteAllItemSimilarity();
     List<UserThingScore> fetchUserThingWeights();

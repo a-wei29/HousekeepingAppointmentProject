@@ -5,7 +5,9 @@ server.servlet.context-path: /api
 BASE_LOCATION: C:\Users\86136\Desktop\java_jiazheng-master-0b5a3d0e9570b46f48db42d0590d264f822e2fa2
 DB_NAME: java_jiazheng
 
-
+#logging:
+#  level:
+#    root: DEBUG
 spring:
   resources:
     add-mappings: true
