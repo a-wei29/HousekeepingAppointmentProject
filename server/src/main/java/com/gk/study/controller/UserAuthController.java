@@ -13,6 +13,8 @@ import com.gk.study.service.UserService;
 import com.gk.study.enums.UserRole;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -60,22 +62,31 @@ public class UserAuthController {
 
     @Operation(
             summary = "获取用户列表",
-            description = "查询用户列表，可以根据角色和手机号进行模糊搜索。",
+            description = "按角色和手机号模糊查询用户列表，支持分页。查询参数均可选，page 和 size 有默认值",
+            parameters = {
+                    @Parameter(name = "role", description = "用户角色，整型，非必填", in = ParameterIn.QUERY, schema = @Schema(type = "integer", example = "1")),
+                    @Parameter(name = "mobile", description = "手机号模糊匹配，非必填", in = ParameterIn.QUERY, schema = @Schema(type = "string", example = "1234567890")),
+                    @Parameter(name = "page", description = "页码，默认 1", in = ParameterIn.QUERY, schema = @Schema(type = "integer", example = "1")),
+                    @Parameter(name = "size", description = "每页条数，默认 10", in = ParameterIn.QUERY, schema = @Schema(type = "integer", example = "10"))
+            },
             responses = {
                     @ApiResponse(responseCode = "200", description = "查询成功"),
                     @ApiResponse(responseCode = "400", description = "查询参数不合法")
             }
     )
     @GetMapping("/list")
-    public ResponseEntity<APIResponse<?>> list( @RequestBody(required = false) UserListRequest request) {
+    public ResponseEntity<APIResponse<IPage<User>>> list(
+            @RequestParam(required = false) Integer role,
+            @RequestParam(required = false) String mobile,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
         logger.info("调用 /list 接口, role: {}, mobile: {}, page: {}, size: {}",
-                request.getRole(), request.getMobile(), request.getPage(), request.getSize());
-        if (request == null) {
-            request = new UserListRequest();  // 会使用 page=1, size=10 的默认值
-        }
+                role, mobile, page, size);
+
         // 构造分页对象
-        Page<User> pageParam = new Page<>(request.getPage(), request.getSize());
-        IPage<User> resultPage = userService.getUserList(request.getRole(), request.getMobile(), pageParam);
+        Page<User> pageParam = new Page<>(page, size);
+        IPage<User> resultPage = userService.getUserList(role, mobile, pageParam);
 
         return ResponseEntity.ok(
                 new APIResponse<>(ResponeCode.SUCCESS, "查询成功", resultPage)
