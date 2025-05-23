@@ -67,10 +67,12 @@ public class UserAuthController {
             }
     )
     @GetMapping("/list")
-    public ResponseEntity<APIResponse<?>> list(@RequestBody UserListRequest request) {
+    public ResponseEntity<APIResponse<?>> list( @RequestBody(required = false) UserListRequest request) {
         logger.info("调用 /list 接口, role: {}, mobile: {}, page: {}, size: {}",
                 request.getRole(), request.getMobile(), request.getPage(), request.getSize());
-
+        if (request == null) {
+            request = new UserListRequest();  // 会使用 page=1, size=10 的默认值
+        }
         // 构造分页对象
         Page<User> pageParam = new Page<>(request.getPage(), request.getSize());
         IPage<User> resultPage = userService.getUserList(request.getRole(), request.getMobile(), pageParam);
