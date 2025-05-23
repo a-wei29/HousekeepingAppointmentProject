@@ -85,6 +85,7 @@ public class ThingController {
             @Parameter(description = "最低评分") @RequestParam(required = false) Integer minScore,
             @Parameter(description = "当前页码") @RequestParam(required = false, defaultValue = "1") int page,
             @Parameter(description = "每页记录数") @RequestParam(required = false, defaultValue = "10") int size,
+            @Parameter(description = "是否只返回已收藏服务，0=返回全部，1=只返回已收藏") @RequestParam(defaultValue = "0") int filterCollected,
             @RequestHeader("Authorization") String token
     ) {
         logger.info("Listing things with filters - keyword: {}, sort: {}, classificationId: {}, tag: {}, latitude: {}, longitude: {}, distanceKm: {}, minPrice: {}, maxPrice: {}, minScore: {}, page: {}, size: {}",
@@ -105,42 +106,53 @@ public class ThingController {
                 latitude, longitude, distanceKm,
                 minPrice, maxPrice, minScore, pageParam);
 
-        // 3. 遍历查询结果，为每个 Thing 设置分类名称、服务发布者名称及收藏标志位
-        if (resultPage.getRecords() != null) {
-            for (Thing thing : resultPage.getRecords()) {
-                // 设置分类名称
-                if (thing.getClassificationId() != null) {
-                    HousekeepingServiceCategory category = HousekeepingServiceCategory.getByCode(thing.getClassificationId().intValue());
-                    if (category != null) {
-                        thing.setClassificationName(category.getDescription());
+        List<Thing> records = resultPage.getRecords();
+        if (records == null) records = Collections.emptyList();
+
+        // 3. 拿到当前用户所有收藏的 thing id
+        List<Map> collectedList = thingCollectService.getThingCollectList(currentUser.getId().toString());
+        Set<Long> collectedIds = collectedList.stream()
+                .map(m -> Long.valueOf(m.get("thing_id").toString()))
+                .collect(Collectors.toSet());
+
+        // 4. 根据 filterCollected 过滤列表
+        List<Thing> filtered = records.stream()
+                .filter(t -> {
+                    if (filterCollected == 1) {
+                        // 只保留已收藏
+                        return t.getId() != null && collectedIds.contains(t.getId());
+                    } else {
+                        // 全部保留
+                        return true;
                     }
-                }
-                // 设置服务发布者名称（根据 thing.userId 获取）
-                if (thing.getUserId() != null) {
-                    User publisher = userService.getUserDetail(thing.getUserId().toString());
-                    if (publisher != null) {
-                        thing.setPublisherName(publisher.getUsername());
-                    }
-                }
-                // 设置收藏标志位：调用 ThingCollectService.getThingCollect 判断当前用户是否收藏了该服务
-                if (thing.getId() != null) {
-                    ThingCollect thingCollect = thingCollectService.getThingCollect(currentUser.getId().toString(), thing.getId().toString());
-                    thing.setCollected(thingCollect != null ? 1 : 0);
-                } else {
-                    thing.setCollected(0);
-                }
+                })
+                .collect(Collectors.toList());
+
+        // 5. 更新分页结果
+        resultPage.setRecords(filtered);
+        resultPage.setTotal(filtered.size());
+
+        // 6. 补充分类名、发布者、收藏标志
+        for (Thing thing : filtered) {
+            // 分类名称
+            if (thing.getClassificationId() != null) {
+                HousekeepingServiceCategory cat = HousekeepingServiceCategory
+                        .getByCode(thing.getClassificationId().intValue());
+                if (cat != null) thing.setClassificationName(cat.getDescription());
             }
+            // 发布者名称
+            if (thing.getUserId() != null) {
+                User pub = userService.getUserDetail(thing.getUserId().toString());
+                if (pub != null) thing.setPublisherName(pub.getUsername());
+            }
+            // 收藏标志：filterCollected==1 时结果都是已收藏，否则根据 collectedIds 判断
+            thing.setCollected(filterCollected == 1 ? 1
+                    : (thing.getId() != null && collectedIds.contains(thing.getId()) ? 1 : 0));
         }
 
-        // 4. 返回结果
-        if (resultPage.getRecords() == null || resultPage.getRecords().isEmpty()) {
-            return ResponseEntity.ok(
-                    new APIResponse<>(ResponeCode.SUCCESS, "暂无家政服务数据", resultPage)
-            );
-        }
-        return ResponseEntity.ok(
-                new APIResponse<>(ResponeCode.SUCCESS, "查询成功", resultPage)
-        );
+        // 7. 返回
+        String msg = filtered.isEmpty() ? "暂无家政服务数据" : "查询成功";
+        return ResponseEntity.ok(new APIResponse<>(ResponeCode.SUCCESS, msg, resultPage));
     }
 
 
