@@ -29,4 +29,16 @@
             #{id}
         </foreach>
     </select>
+
+    <insert id="insert" parameterType="com.gk.study.entity.Thing"
+            useGeneratedKeys="true" keyProperty="id" keyColumn="id">
+        INSERT INTO b_thing
+        (title, price, user_id, classification_id, mobile, age, sex,
+        location, latitude, longitude, status, score, create_time, pv,
+        collect_count, wish_count)
+        VALUES
+        (#{title}, #{price}, #{userId}, #{classificationId}, #{mobile},
+        #{age}, #{sex}, #{location}, #{latitude}, #{longitude},
+        #{status}, #{score}, #{createTime}, #{pv}, #{collectCount}, #{wishCount})
+    </insert>
 </mapper>

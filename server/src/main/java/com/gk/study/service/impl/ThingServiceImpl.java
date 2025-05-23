@@ -187,19 +187,24 @@ public class ThingServiceImpl extends ServiceImpl<ThingMapper, Thing> implements
 
 
     @Override
-    public void createThing(Thing thing) {
-        System.out.println(thing);
+    public Long createThing(Thing thing) {
+        // 设置通用字段
         thing.setCreateTime(String.valueOf(System.currentTimeMillis()));
-
         if (thing.getPv() == null) {
             thing.setPv("0");
         }
         if (thing.getScore() == null) {
             thing.setScore("0");
         }
+
+        // 执行插入 —— 主键会自动回填到 thing.id
         mapper.insert(thing);
-        // 更新tag
+
+        // 维护标签关系
         setThingTags(thing);
+
+        // 返回新生成的主键
+        return thing.getId();
     }
 
     @Override

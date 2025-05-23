@@ -26,4 +26,6 @@ public interface ThingMapper extends BaseMapper<Thing> {
      */
     List<Thing> findByIds(@Param("ids") List<Long> ids);
 
+
+
 }

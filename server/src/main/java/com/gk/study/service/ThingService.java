@@ -20,7 +20,7 @@ public interface ThingService {
                                  BigDecimal minPrice, BigDecimal maxPrice, Integer minScore,
                                  Page<Thing> pageParam);
 
-    void createThing(Thing thing);
+    Long createThing(Thing thing);
     void deleteThing(String id);
 
     void updateThing(Thing thing);

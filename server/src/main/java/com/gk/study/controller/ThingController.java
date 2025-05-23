@@ -288,11 +288,12 @@ public class ThingController {
 
 
 
-        // 4. 调用 Service 创建家政服务
-        thingService.createThing(thing);
+        // 调用 Service 并获取新记录的 ID
+        Long newThingId = thingService.createThing(thing);
 
+        // 返回主键给调用方
         return ResponseEntity.ok(
-                new APIResponse<>(ResponeCode.SUCCESS, "创建成功")
+                new APIResponse<>(ResponeCode.SUCCESS, "创建成功", newThingId)
         );
     }
 

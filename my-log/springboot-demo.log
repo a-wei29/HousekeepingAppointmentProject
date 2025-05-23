@@ -2037,3 +2037,5 @@ java.lang.NullPointerException: Cannot invoke "java.lang.Long.longValue()" becau
 2025-05-22 23:06:59.434 [ main ] - [ INFO  ] [ com.gk.study.MySpringApplication : 61 ] - Started MySpringApplication in 5.538 seconds (JVM running for 5.944)
 2025-05-22 23:07:08.587 [ http-nio-9100-exec-2 ] - [ INFO  ] [ o.a.c.c.ContainerBase.[Tomcat].[localhost].[/api] : 173 ] - Initializing Spring DispatcherServlet 'dispatcherServlet'
 2025-05-22 23:07:08.653 [ http-nio-9100-exec-2 ] - [ INFO  ] [ com.gk.study.controller.RecommendationController : 44 ] - Fetching personalized recommendations for user ID: 14
+2025-05-22 23:09:51.954 [ SpringApplicationShutdownHook ] - [ INFO  ] [ com.alibaba.druid.pool.DruidDataSource : 2063 ] - {dataSource-1} closing ...
+2025-05-22 23:09:51.982 [ SpringApplicationShutdownHook ] - [ INFO  ] [ com.alibaba.druid.pool.DruidDataSource : 2136 ] - {dataSource-1} closed
