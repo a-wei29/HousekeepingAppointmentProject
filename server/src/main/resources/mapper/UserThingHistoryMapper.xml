@@ -3,11 +3,11 @@
 <mapper namespace="com.gk.study.mapper.UserThingHistoryMapper">
 
 
-    <select id="findRecentThingIds" resultType="long">
+    <select id="findRecentThingIds" resultType="java.lang.Long">
         SELECT thing_id
         FROM b_user_thing_history
         WHERE user_id = #{userId}
-        ORDER BY CAST(browse_time AS DATETIME) DESC
+        ORDER BY browse_time DESC
         LIMIT #{limit}
     </select>
 
