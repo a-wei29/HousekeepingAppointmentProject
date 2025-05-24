@@ -41,4 +41,12 @@ class ThingCollectServiceImpl extends ServiceImpl<ThingCollectMapper, ThingColle
                 .eq("user_id", userId);
         return mapper.selectOne(queryWrapper);
     }
+
+    @Override
+    public int countByThingId(String thingId) {
+        return Math.toIntExact(mapper.selectCount(
+                new QueryWrapper<ThingCollect>()
+                        .eq("thing_id", thingId)
+        ));
+    }
 }

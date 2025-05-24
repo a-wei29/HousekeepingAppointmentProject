@@ -11,4 +11,9 @@ public interface ThingCollectService {
     void createThingCollect(ThingCollect thingCollect);
     int deleteThingCollect(String userId, String thingId);
     ThingCollect getThingCollect(String userId, String thingId);
+
+    /**
+     * 统计某个 Thing 被收藏的次数
+     */
+    int countByThingId(String thingId);
 }

@@ -31,4 +31,9 @@ public interface CommentService {
     public Page<Comment> getThingCommentListByRating(String thingId, String order, Integer pageNo, Integer pageSize);
 
     public void createCommentAndUpdateScores(Comment comment);
+
+    /**
+     * 统计某个 Thing 的评论总数
+     */
+    int countByThingId(String thingId);
 }

@@ -115,4 +115,12 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
             serviceProviderMapper.updateById(sp);
         }
     }
+
+    @Override
+    public int countByThingId(String thingId) {
+        return Math.toIntExact(commentMapper.selectCount(
+                new QueryWrapper<Comment>()
+                        .eq("thing_id", thingId)
+        ));
+    }
 }

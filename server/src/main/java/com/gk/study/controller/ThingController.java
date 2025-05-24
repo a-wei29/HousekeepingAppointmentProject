@@ -12,10 +12,7 @@ import com.gk.study.enums.HousekeepingServiceCategory;
 import com.gk.study.jwt.JwtUtil;
 import com.gk.study.permission.Access;
 import com.gk.study.permission.AccessLevel;
-import com.gk.study.service.ServiceProviderService;
-import com.gk.study.service.ThingCollectService;
-import com.gk.study.service.ThingService;
-import com.gk.study.service.UserService;
+import com.gk.study.service.*;
 import com.gk.study.enums.UserRole;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -53,6 +50,9 @@ public class ThingController {
 
     @Autowired
     UserService userService;
+
+    @Autowired
+    CommentService commentService;
 
     @Autowired
     private JwtUtil jwtUtil;
@@ -174,6 +174,10 @@ public class ThingController {
         if (thing == null) {
             return ResponseEntity.ok(new APIResponse<>(ResponeCode.FAIL, "该家政服务不存在或已被删除"));
         }
+        // 统计评论数 & 收藏数
+        int commentCount = commentService.countByThingId(id.toString());
+        int collectCount = thingCollectService.countByThingId(id.toString());
+
 
         // 根据分类ID获取对应的分类名称，并设置到 classificationName 字段
         if (thing.getClassificationId() != null) {
@@ -188,6 +192,9 @@ public class ThingController {
         Map<String, Object> result = new HashMap<>();
         result.put("thing", thing);
         result.put("provider", provider);
+        // 新增两个字段
+        result.put("commentCount", commentCount);
+        result.put("collectCount", collectCount);
 
         return ResponseEntity.ok(new APIResponse<>(ResponeCode.SUCCESS, "查询成功", result));
     }
