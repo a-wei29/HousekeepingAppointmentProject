@@ -31,7 +31,7 @@ public class Comment implements Serializable {
     public String cover; // 封面
 
     // 新增字段：订单ID
-    @TableField
+    @TableField(exist = false)
     public String orderId;
 
     // 新增字段：评分
