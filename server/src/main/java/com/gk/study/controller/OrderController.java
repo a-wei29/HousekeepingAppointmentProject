@@ -283,6 +283,7 @@ public class OrderController {
 
         // 调用 ThingService 获取关联的家政服务信息（注意：这里需要注入 ThingService）
         Thing thing = thingService.getThingById(order.getThingId());
+        User servicePublisher = userService.getUserDetail(String.valueOf(thing.getUserId()));
         if(thing != null){
             // 仅拷贝 Order 中未定义的字段，即那些在 Thing 中但 Order 中没有的字段
 
@@ -294,7 +295,7 @@ public class OrderController {
             dto.setDescription(thing.getDescription());
             dto.setThingCreateTime(thing.getCreateTime());
             dto.setScore(thing.getScore());
-            dto.setMobile(thing.getMobile());
+            dto.setMobile(servicePublisher.getMobile());
             dto.setAge(thing.getAge());
             dto.setSex(thing.getSex());
             dto.setLocation(thing.getLocation());
@@ -306,7 +307,7 @@ public class OrderController {
             dto.setLatitude(thing.getLatitude());
             dto.setLongitude(thing.getLongitude());
             dto.setTags(thing.getTags());
-            dto.setPublisherName(provider.getName());
+            dto.setPublisherName(servicePublisher.getNickname());
             dto.setCollected(thing.getCollected());
             dto.setTitle(thing.getTitle());
             dto.setPrice(String.valueOf(thing.getPrice()));
