@@ -132,7 +132,7 @@ public class ThingController {
         resultPage.setRecords(filtered);
         resultPage.setTotal(filtered.size());
 
-        // 6. 补充分类名、发布者、收藏标志
+        // 6. 补充分类名、发布者、收藏标志,收藏数
         for (Thing thing : filtered) {
             // 分类名称
             if (thing.getClassificationId() != null) {
@@ -148,6 +148,9 @@ public class ThingController {
             // 收藏标志：filterCollected==1 时结果都是已收藏，否则根据 collectedIds 判断
             thing.setCollected(filterCollected == 1 ? 1
                     : (thing.getId() != null && collectedIds.contains(thing.getId()) ? 1 : 0));
+
+            int commentCount = commentService.countByThingId(thing.getId().toString());
+            thing.setCommentCount(commentCount);
         }
 
         // 7. 返回

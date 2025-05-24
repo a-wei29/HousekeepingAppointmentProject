@@ -67,6 +67,9 @@ public class Thing implements Serializable {
     public Long userId;// 发布服务的用户ID
 
     @TableField(exist = false)
+    private int commentCount;
+
+    @TableField(exist = false)
     private String classificationName;
 
 
@@ -99,6 +102,14 @@ public class Thing implements Serializable {
         double heat = Double.parseDouble(pv) + recommendCount * 2 + collectCount * 3;
         vec.add(Math.min(1.0, heat / 10000.0));
         return vec.stream().mapToDouble(Double::doubleValue).toArray();
+    }
+
+    public int getCommentCount() {
+        return commentCount;
+    }
+
+    public void setCommentCount(int commentCount) {
+        this.commentCount = commentCount;
     }
 
     // 生成对应的 getter/setter
