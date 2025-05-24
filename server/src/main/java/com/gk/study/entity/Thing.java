@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
+import org.apache.ibatis.type.ByteArrayTypeHandler;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.Serializable;
@@ -19,7 +20,8 @@ public class Thing implements Serializable {
     public Long id;
     @TableField
     public String title;
-    @TableField
+    /** 图片二进制，映射到 BLOB 列 */
+    @TableField(typeHandler = ByteArrayTypeHandler.class)
     public byte[] cover;
     @TableField
     public String description;
