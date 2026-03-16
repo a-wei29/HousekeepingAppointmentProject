@@ -9,6 +9,17 @@ DB_NAME: java_jiazheng
 #  level:
 #    root: DEBUG
 spring:
+  redis:
+    host: localhost
+    port: 6379
+    password:  # 如果有密码就填写
+    database: 0
+    timeout: 5000ms
+    lettuce:
+      pool:
+        max-active: 8
+        max-idle: 8
+        min-idle: 0
   resources:
     add-mappings: true
     static-locations:
@@ -19,7 +30,7 @@ spring:
       - classpath:/swagger-ui/
   datasource:
     username: root
-    password: 111111
+    password: Zzw031029.
     url: jdbc:mysql://localhost:3306/${DB_NAME}?useUnicode=true&characterEncoding=utf-8&useSSL=true&serverTimezone=UTC
     driver-class-name: com.mysql.cj.jdbc.Driver
     type: com.alibaba.druid.pool.DruidDataSource
@@ -97,3 +108,39 @@ File:
 mybatis:
   configuration:
     map-underscore-to-camel-case: true
+
+aliyun:
+  dashscope:
+    api-key: sk-91d137391a7a470fb7c0b8289e56221c # 替换成你的API Key
+    model: qwen-plus # 模型名，预留切换空间
+
+chromadb:
+  url: http://localhost:8000
+  knowledge-collection: knowledge_qa      # 知识库集合
+  business-collection: business_data       # 业务库集合
+
+langchain4j:
+  zhipu:
+    api-key: 19b3c1b5976c4db38779910a4469ac27.ZJwVzBjluIGYTEqV
+    chat-model:
+      model: glm-4-flash        # 先用免费的，上线再换glm-4
+      temperature: 0.7
+      max-tokens: 512
+      max-retries: 3
+      timeout: 60
+
+
+rag:
+  hybrid:
+    vector-weight: 0.5
+    bm25-weight: 0.5
+    rrf-k: 60
+    vector-results: 10
+    bm25-results: 10
+    final-results: 5
+    knowledge-weight: 0.6
+    business-weight: 0.4
+
+  hyde:
+    enabled: false
+    weight: 0.6

@@ -27,13 +27,14 @@ public class JwtUtil {
     // 解析token，获取subject(用户名)
     public String getUsernameFromToken(String token) {
         try {
-            return Jwts.parser()
+            return Jwts.parser()           // 新版：用 parserBuilder()
                     .setSigningKey(SECRET_KEY)
-                    .parseClaimsJws(token)
+                    .build()                       // 新版：需要调用 build()
+                    .parseClaimsJws(token)          // 解析 token
                     .getBody()
                     .getSubject();
         } catch (Exception e) {
-            return null; // 解析失败
+            return null;
         }
     }
 
@@ -45,7 +46,7 @@ public class JwtUtil {
     // 检查token是否有效
     public boolean validateToken(String token) {
         try {
-            Jwts.parser().setSigningKey(SECRET_KEY).parseClaimsJws(token);
+            Jwts.parser().setSigningKey(SECRET_KEY).build().parseClaimsJws(token);
             return true;
         } catch (Exception e) {
             // expired or invalid

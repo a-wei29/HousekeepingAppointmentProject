@@ -5,9 +5,11 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.event.ApplicationFailedEvent;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationListener;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 
 @SpringBootApplication
+@EnableScheduling
 public class MySpringApplication {
 
     public static void main(String[] args) {

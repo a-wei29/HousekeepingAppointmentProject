@@ -227,6 +227,8 @@ public class UserAuthController {
     )
     @PostMapping("/login")
     public ResponseEntity<APIResponse<?>> login(@RequestBody LoginRequest request) {
+        System.out.println(111111);
+        System.out.println(request);
         // 1. 构造用户名密码登录token
         UsernamePasswordAuthenticationToken authToken =
                 new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword());
